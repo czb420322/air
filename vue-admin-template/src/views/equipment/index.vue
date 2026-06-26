@@ -14,6 +14,7 @@
             :class="['machine-tab', { active: activeMachineTab === tab.key }]" @click="switchMachineTab(tab.key)">
             {{ tab.label }}
           </button>
+          <span/>
         </div>
 
         <template v-if="zoneEditMode && activeMachineTab === 'indoor'">
@@ -1739,6 +1740,7 @@ export default {
   display: flex;
   min-height: calc(100vh - 125px);
   position: relative;
+  overflow: auto;
 }
 
 .sidebar {
@@ -1798,6 +1800,7 @@ export default {
 
 .machine-switch {
   display: flex;
+  justify-content: space-around;
   gap: 32px;
   padding: 0 0 0 2px;
 }

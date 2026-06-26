@@ -8,7 +8,7 @@
       @close="showTenantSelector = false"
     />
     <div class="main-container">
-      <div :class="{'fixed-header':fixedHeader}">
+      <div v-if="true" :class="{'fixed-header':fixedHeader}">
         <navbar />
       </div>
       <app-main />
