@@ -39,10 +39,9 @@
           <div class="calendar-filter">
             <div class="filter-label">日期选择</div>
             <div class="month-input">
-              <!-- <span>{{ rentTime }}</span>
-              <i class="el-icon-date" /> -->
-              <el-date-picker v-model="rentTime" @change="handleMonthChange" type="month" placeholder="选择月" />
-              <!-- <el-date-picker v-model="rentTime" @change="handleYearChange" type="year" placeholder="选择年" /> -->
+              <i class="el-icon-date calendar-icon" :class="[focusDate ? 'redDate' : '']" />
+              <el-date-picker @blur="handleBlurDate" @focus="handleFocusDate" :clearable="!1" v-model="rentNewTime"
+                @change="handleMonthChange" :type="activeView !== 'year' ? 'month' : 'year'" placeholder="选择月" />
             </div>
           </div>
           <div class="mini-calendar-list">
@@ -242,6 +241,8 @@ export default {
   data() {
     return {
       rentTime: null,
+      rentNewTime: null,
+      focusDate: false,
       pageMode: 'list',
       activeScheduleTab: 'running',
       repeatMode: 'daily',
@@ -317,12 +318,19 @@ export default {
     }
   },
   methods: {
+    handleFocusDate() {
+      this.focusDate = true
+    },
+    handleBlurDate() {
+      this.focusDate = false
+    },
     renderCalendar(val) {
       const now = new Date()
       const year = now.getFullYear()
       const month = String(now.getMonth() + 1).padStart(2, '0')
       const day = String(now.getDate()).padStart(2, '0')
       this.rentTime = `${year}-${month}-${day}`
+      this.rentNewTime = `${year}-${month}-${day}`
       return val === 'day' ? `${year}-${month}-${day}` : val === 'month' ? `${year}-${month}` : `${year}`
     },
     handleSwitch(viewMode) {
@@ -498,16 +506,31 @@ export default {
 
 .month-input {
   padding: 0 12px;
+  position: relative;
+
+  .calendar-icon {
+    position: absolute;
+    right: 33px;
+    top: 8px;
+    z-index: 2;
+  }
+  .redDate{
+    color:#1a4fd9;
+  }
+
+  ::v-deep .el-input__prefix {
+    opacity: 0;
+  }
 
   ::v-deep .el-date-editor {
     width: 180px !important;
-    height: 36px !important;
+    height: 32px !important;
   }
 
   ::v-deep .el-date-editor .el-input__inner {
-    height: 36px !important;
-    border: 2px solid #2d63ff !important;
+    height: 32px !important;
     border-radius: 6px !important;
+    padding-left: 10px !important;
   }
 
   ::v-deep .el-date-editor .el-input__inner:hover {
@@ -516,7 +539,6 @@ export default {
 
   ::v-deep .el-date-editor .el-input__inner:focus {
     border-color: #2d63ff !important;
-    box-shadow: 0 0 0 2px rgba(45, 99, 255, 0.2) !important;
   }
 }
 
