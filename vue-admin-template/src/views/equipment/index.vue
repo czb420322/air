@@ -6,12 +6,13 @@
         :key="tab.key"
         type="button"
         :class="['top-tab', { active: activeTopTab === tab.key }]"
-        @click="activeTopTab = tab.key"
+        @click="handleTopTabChange(tab.key)"
       >
         {{ tab.label }}
       </button>
     </div>
 
+    <template v-if="activeTopTab === 'management'">
     <div :class="['content-shell', { 'sidebar-collapsed': sidebarCollapsed }]">
       <aside :class="['sidebar', { editing: zoneEditMode, collapsed: sidebarCollapsed }]">
         <div class="machine-switch">
@@ -998,14 +999,22 @@
           <button type="button" class="batch-btn confirm" @click="confirmCreateZone">确定</button>
         </template>
       </el-dialog>
+    </template>
+    <quick-control-panel v-else-if="activeTopTab === 'control'" />
+    <control-logs-panel v-else />
   </div>
 </template>
 
 <script>
-import { Image } from 'element-ui';
+import QuickControlPanel from './components/QuickControlPanel'
+import ControlLogsPanel from './components/ControlLogsPanel'
 
 export default {
   name: 'EquipmentManagement',
+  components: {
+    QuickControlPanel,
+    ControlLogsPanel
+  },
   data() {
     return {
       activeTopTab: 'management',
@@ -1401,6 +1410,15 @@ export default {
     }
   },
   methods: {
+    handleTopTabChange(tabKey) {
+      this.activeTopTab = tabKey
+      this.closeAllDialogs()
+      this.closeBatchControl()
+      this.closeBatchDelete()
+      this.closeCreateZoneDialog()
+      this.showMoreMenu = false
+      this.nodeMenuId = ''
+    },
     openDeviceDetail(device) {
       this.showSortDialog = false
       this.selectedDevice = device
@@ -2709,8 +2727,7 @@ export default {
   flex: 1;
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 5px;
-  margin-left: -45px;
+  gap: 12px;
 }
 
 .device-card {
@@ -2719,7 +2736,9 @@ export default {
   background: #fff;
   padding: 12px;
   cursor: pointer;
-  width: 359px;
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
 }
 
 .device-card.active {
