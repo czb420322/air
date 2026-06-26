@@ -88,7 +88,7 @@ export const constantRoutes = [
       {
         path: 'index',
         name: 'Fault',
-        component: () => import('@/views/table/index'),
+        component: () => import('@/views/fault/index'),
         meta: { title: '故障管理', icon: 'el-icon-warning' }
       }
     ]
@@ -101,7 +101,7 @@ export const constantRoutes = [
       {
         path: 'index',
         name: 'Energy',
-        component: () => import('@/views/table/index'),
+        component: () => import('@/views/energy/index'),
         meta: { title: '能耗管理', icon: 'el-icon-trending-up' }
       }
     ]
@@ -114,7 +114,7 @@ export const constantRoutes = [
       {
         path: 'index',
         name: 'Billing',
-        component: () => import('@/views/table/index'),
+        component: () => import('@/views/billing/index'),
         meta: { title: '分户计费', icon: 'el-icon-wallet' }
       }
     ]
@@ -127,7 +127,7 @@ export const constantRoutes = [
       {
         path: 'index',
         name: 'Config',
-        component: () => import('@/views/table/index'),
+        component: () => import('@/views/config/index'),
         meta: { title: '配置中心', icon: 'el-icon-setting' }
       }
     ]
@@ -140,7 +140,7 @@ export const constantRoutes = [
       {
         path: 'index',
         name: 'Logs',
-        component: () => import('@/views/table/index'),
+        component: () => import('@/views/logs/index'),
         meta: { title: '操作日志', icon: 'el-icon-document' }
       }
     ]
@@ -153,7 +153,7 @@ export const constantRoutes = [
       {
         path: 'index',
         name: 'Account',
-        component: () => import('@/views/table/index'),
+        component: () => import('@/views/account/index'),
         meta: { title: '账号权限', icon: 'el-icon-user' }
       }
     ]

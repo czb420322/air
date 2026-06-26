@@ -1,20 +1,30 @@
 ﻿﻿<template>
   <div class="device-page">
     <div class="top-tabs">
-      <button v-for="tab in topTabs" :key="tab.key" type="button"
-        :class="['top-tab', { active: activeTopTab === tab.key }]" @click="activeTopTab = tab.key">
+      <button
+        v-for="tab in topTabs"
+        :key="tab.key"
+        type="button"
+        :class="['top-tab', { active: activeTopTab === tab.key }]"
+        @click="handleTopTabChange(tab.key)"
+      >
         {{ tab.label }}
       </button>
     </div>
 
+    <template v-if="activeTopTab === 'management'">
     <div :class="['content-shell', { 'sidebar-collapsed': sidebarCollapsed }]">
       <aside :class="['sidebar', { editing: zoneEditMode, collapsed: sidebarCollapsed }]">
         <div class="machine-switch">
-          <button v-for="tab in machineTabs" :key="tab.key" type="button"
-            :class="['machine-tab', { active: activeMachineTab === tab.key }]" @click="switchMachineTab(tab.key)">
+          <button
+            v-for="tab in machineTabs"
+            :key="tab.key"
+            type="button"
+            :class="['machine-tab', { active: activeMachineTab === tab.key }]"
+            @click="switchMachineTab(tab.key)"
+          >
             {{ tab.label }}
           </button>
-          <span/>
         </div>
 
         <template v-if="zoneEditMode && activeMachineTab === 'indoor'">
@@ -30,8 +40,13 @@
           </div>
 
           <div class="zone-edit-tree">
-            <el-tree :data="zoneTreeData" :props="{ children: 'children', label: 'label' }" :highlight-current="true"
-              :expand-on-click-node="false" @node-click="handleZoneNodeClick">
+            <el-tree
+              :data="zoneTreeData"
+              :props="{ children: 'children', label: 'label' }"
+              :highlight-current="true"
+              :expand-on-click-node="false"
+              @node-click="handleZoneNodeClick"
+            >
               <span slot-scope="{ node, data }" class="custom-tree-node">
                 <span :class="['editable-zone-name', { active: selectedEditZone === data.id }]">{{ node.label }}</span>
                 <span class="editable-zone-actions">
@@ -62,27 +77,41 @@
             </div>
 
             <div class="zone-tree">
-              <div v-for="group in currentZoneGroups" :key="group.id" class="zone-group">
-                <div :class="['zone-group-title', { active: selectedZone === group.id }]" @click="selectZone(group.id)">
+              <div
+                v-for="group in currentZoneGroups"
+                :key="group.id"
+                class="zone-group"
+              >
+                <div
+                  :class="['zone-group-title', { active: selectedZone === group.id }]"
+                  @click="selectZone(group.id)"
+                >
                   <div class="zone-group-main">
                     <span class="caret">{{ group.expanded ? '▼' : '▶' }}</span>
-                    <input v-if="showBatchControl" type="checkbox" :checked="isGroupSelected(group)"
-                      @click.stop="toggleGroupSelect(group)" />
+                    <input v-if="showBatchControl" type="checkbox" :checked="isGroupSelected(group)" @click.stop="toggleGroupSelect(group)" />
                     <span>{{ group.name }}（{{ group.items.length }}）</span>
                   </div>
                 </div>
 
                 <div v-if="group.expanded" class="zone-items">
-                  <div v-for="item in group.items" :key="item.id"
-                    :class="['zone-item', { active: selectedZone === item.id }]" @click="selectZone(item.id)">
-                    <input v-if="showBatchControl" type="checkbox" :checked="isZoneItemSelected(group, item)"
-                      @click.stop="toggleZoneItemSelect(group, item)" />
+                  <div
+                    v-for="item in group.items"
+                    :key="item.id"
+                    :class="['zone-item', { active: selectedZone === item.id }]"
+                    @click="selectZone(item.id)"
+                  >
+                    <input v-if="showBatchControl" type="checkbox" :checked="isZoneItemSelected(group, item)" @click.stop="toggleZoneItemSelect(group, item)" />
                     <span>{{ item.label }}</span>
                   </div>
                 </div>
               </div>
             </div>
-            <button v-if="activeMachineTab === 'indoor'" type="button" class="edit-zone-btn" @click="enterZoneEditMode">
+            <button
+              v-if="activeMachineTab === 'indoor'"
+              type="button"
+              class="edit-zone-btn"
+              @click="enterZoneEditMode"
+            >
               编辑分区
             </button>
           </div>
@@ -100,15 +129,28 @@
             <span class="mode-text">拓扑模式</span>
           </div>
 
-          <button v-if="zoneEditMode" type="button" class="exit-btn" @click="exitZoneEditMode">
+          <button
+            v-if="zoneEditMode"
+            type="button"
+            class="exit-btn"
+            @click="exitZoneEditMode"
+          >
             退出
           </button>
 
           <div v-else class="toolbar-view-switch">
-            <button type="button" :class="['view-btn', { active: viewMode === 'card' }]" @click="viewMode = 'card'">
+            <button
+              type="button"
+              :class="['view-btn', { active: viewMode === 'card' }]"
+              @click="viewMode = 'card'"
+            >
               <i class="el-icon-s-grid"></i>
             </button>
-            <button type="button" :class="['view-btn', { active: viewMode === 'table' }]" @click="viewMode = 'table'">
+            <button
+              type="button"
+              :class="['view-btn', { active: viewMode === 'table' }]"
+              @click="viewMode = 'table'"
+            >
               <i class="el-icon-s-unfold"></i>
             </button>
           </div>
@@ -121,33 +163,70 @@
                 <span>{{ currentSearchField }}</span>
                 <i class="el-icon-arrow-down"></i>
                 <div class="combo-dropdown" v-if="showSearchDropdown">
-                  <div v-for="item in searchFieldOptions" :key="item.value" class="dropdown-item"
-                    @click.stop="selectSearchField(item)">
+                  <div
+                    v-for="item in searchFieldOptions"
+                    :key="item.value"
+                    class="dropdown-item"
+                    @click.stop="selectSearchField(item)"
+                  >
                     {{ item.label }}
                   </div>
                 </div>
               </div>
               <!-- 室内机条码使用下拉框 -->
-              <el-select v-if="currentSearchField === '室内机条码'" v-model="filters.keyword" placeholder="" filterable
-                clearable size="small" class="indoor-barcode-select">
-                <el-option v-for="item in indoorBarcodeOptions" :key="item" :label="item" :value="item">
+              <el-select 
+                v-if="currentSearchField === '室内机条码'"
+                v-model="filters.keyword"
+                placeholder=""
+                filterable
+                clearable
+                size="small"
+                class="indoor-barcode-select"
+              >
+                <el-option
+                  v-for="item in indoorBarcodeOptions"
+                  :key="item"
+                  :label="item"
+                  :value="item"
+                >
                 </el-option>
               </el-select>
               <!-- 室外机条码使用下拉框 -->
-              <el-select v-if="currentSearchField === '室外机条码'" v-model="filters.keyword" placeholder="" filterable
-                clearable size="small" class="outdoor-barcode-select">
-                <el-option v-for="item in outdoorBarcodeOptions" :key="item" :label="item" :value="item">
+              <el-select 
+                v-if="currentSearchField === '室外机条码'"
+                v-model="filters.keyword"
+                placeholder=""
+                filterable
+                clearable
+                size="small"
+                class="outdoor-barcode-select"
+              >
+                <el-option
+                  v-for="item in outdoorBarcodeOptions"
+                  :key="item"
+                  :label="item"
+                  :value="item"
+                >
                 </el-option>
               </el-select>
               <!-- 其他字段使用输入框 -->
-              <input v-if="currentSearchField !== '室内机条码' && currentSearchField !== '室外机条码'" v-model="filters.keyword"
-                type="text" class="combo-input" :placeholder="`请输入${currentSearchField}`" @input="handleSearchInput">
-              <i v-if="currentSearchField !== '室内机条码' && currentSearchField !== '室外机条码'"
-                class="el-icon-search search-icon" @click="handleSearch"></i>
-
+              <input
+                v-if="currentSearchField !== '室内机条码' && currentSearchField !== '室外机条码'"
+                v-model="filters.keyword"
+                type="text"
+                class="combo-input"
+                :placeholder="`请输入${currentSearchField}`"
+                @input="handleSearchInput"
+              >
+              <i v-if="currentSearchField !== '室内机条码' && currentSearchField !== '室外机条码'" class="el-icon-search search-icon" @click="handleSearch"></i>
+              
               <div v-if="showSuggestions && suggestions.length > 0" class="suggestion-list">
-                <div v-for="(item, index) in suggestions" :key="index" class="suggestion-item"
-                  @click="selectSuggestion(item)">
+                <div
+                  v-for="(item, index) in suggestions"
+                  :key="index"
+                  class="suggestion-item"
+                  @click="selectSuggestion(item)"
+                >
                   {{ item }}
                 </div>
               </div>
@@ -156,25 +235,56 @@
             <div class="filter-box">
               <span class="filter-label">{{ activeMachineTab === 'indoor' ? '所属系统' : '所属系统' }}</span>
 
-              <el-select v-model="system" multiple collapse-tags size="small" class="system-select" placeholder="请选择">
-                <el-option v-for="item in systemOptions" :key="item.value" :label="item.label" :value="item.value">
-                </el-option>
-              </el-select>
+                  <el-select
+                    v-model="system"
+                    multiple
+                    collapse-tags
+                    size="small"
+                    class="system-select"
+                    placeholder="请选择">
+                    <el-option
+                      v-for="item in systemOptions"
+                      :key="item.value"
+                      :label="item.label"
+                      :value="item.value">
+                    </el-option>
+  </el-select>
             </div>
 
             <div class="filter-box">
               <span class="filter-label">{{ activeMachineTab === 'indoor' ? '实时状态' : '运行状态' }}</span>
-              <el-cascader v-if="activeMachineTab === 'indoor'" :options="indoorOptions" :props="props"
-                @change="handleCascaderChange" size="small" class="status-cascader" collapse-tags placeholder="请选择"
+              <el-cascader
+                v-if="activeMachineTab === 'indoor'"
+                :options="indoorOptions"
+                :props="props"
+                @change="handleCascaderChange"
+                size="small"
+                class="status-cascader"
+                collapse-tags
+                placeholder="请选择"
                 clearable></el-cascader>
-              <el-select v-else v-model="filters.runningStatus" placeholder="请选择" size="small" class="status-select"
-                collapse-tags clearable>
-                <el-option v-for="item in runningOptions" :key="item.value" :label="item.label" :value="item.value">
+              <el-select
+                v-else
+                v-model="filters.runningStatus"
+                placeholder="请选择"
+                size="small"
+                class="status-select"
+                collapse-tags
+                clearable>
+                <el-option
+                  v-for="item in runningOptions"
+                  :key="item.value"
+                  :label="item.label"
+                  :value="item.value">
                 </el-option>
               </el-select>
             </div>
 
-            <button type="button" class="expand-link" @click="expandedFilters = !expandedFilters">
+            <button
+              type="button"
+              class="expand-link"
+              @click="expandedFilters = !expandedFilters"
+            >
               {{ expandedFilters ? '收起' : '展开' }}
               <i :class="expandedFilters ? 'el-icon-arrow-up' : 'el-icon-arrow-down'"></i>
             </button>
@@ -184,28 +294,22 @@
             <!-- 室内机筛选条件 -->
             <div v-if="activeMachineTab === 'indoor'" class="filter-box">
               <span class="filter-label">锁定状态</span>
-              <el-select v-model="filters.lockStatus" placeholder="请选择" size="small"
-                class="expanded-select lock-status-select">
-                <el-option v-for="item in lockStatusOptions" :key="item.value" :label="item.label"
-                  :value="item.value"></el-option>
+              <el-select v-model="filters.lockStatus" placeholder="请选择" size="small" class="expanded-select lock-status-select">
+                <el-option v-for="item in lockStatusOptions" :key="item.value" :label="item.label" :value="item.value"></el-option>
               </el-select>
             </div>
 
             <div v-if="activeMachineTab === 'indoor'" class="filter-box">
               <span class="filter-label">合约状态</span>
-              <el-select v-model="filters.contractStatus" placeholder="请选择" size="small"
-                class="expanded-select contract-status-select">
-                <el-option v-for="item in contractStatusOptions" :key="item.value" :label="item.label"
-                  :value="item.value"></el-option>
+              <el-select v-model="filters.contractStatus" placeholder="请选择" size="small" class="expanded-select contract-status-select">
+                <el-option v-for="item in contractStatusOptions" :key="item.value" :label="item.label" :value="item.value"></el-option>
               </el-select>
             </div>
 
             <div v-if="activeMachineTab === 'indoor'" class="filter-box">
               <span class="filter-label">设备机型</span>
-              <el-select v-model="filters.indoorModel" placeholder="请选择" size="small"
-                class="expanded-select indoor-model-select">
-                <el-option v-for="item in indoorModelOptions" :key="item.value" :label="item.label"
-                  :value="item.value"></el-option>
+              <el-select v-model="filters.indoorModel" placeholder="请选择" size="small" class="expanded-select indoor-model-select">
+                <el-option v-for="item in indoorModelOptions" :key="item.value" :label="item.label" :value="item.value"></el-option>
               </el-select>
             </div>
           </div>
@@ -215,16 +319,14 @@
             <div class="filter-row">
               <div class="filter-box">
                 <span class="filter-label">静音模式</span>
-                <el-select v-model="filters.outdoorMuteMode" placeholder="请选择" size="small"
-                  class="expanded-select mute-mode-select">
+                <el-select v-model="filters.outdoorMuteMode" placeholder="请选择" size="small" class="expanded-select mute-mode-select">
                   <el-option label="静音" value="mute"></el-option>
                   <el-option label="静音停止" value="muteStop"></el-option>
                 </el-select>
               </div>
               <div class="filter-box">
                 <span class="filter-label">合约状态</span>
-                <el-select v-model="filters.outdoorContractStatus" placeholder="请选择" size="small"
-                  class="expanded-select contract-status-select">
+                <el-select v-model="filters.outdoorContractStatus" placeholder="请选择" size="small" class="expanded-select contract-status-select">
                   <el-option label="合约中" value="contract"></el-option>
                   <el-option label="试用中" value="trial"></el-option>
                   <el-option label="未启用" value="disabled"></el-option>
@@ -233,8 +335,7 @@
               </div>
               <div class="filter-box">
                 <span class="filter-label">设备机型</span>
-                <el-select v-model="filters.outdoorDeviceModel" placeholder="请选择" size="small"
-                  class="expanded-select device-model-select">
+                <el-select v-model="filters.outdoorDeviceModel" placeholder="请选择" size="small" class="expanded-select device-model-select">
                   <el-option label="大多联" value="largeMulti"></el-option>
                   <el-option label="小多联" value="smallMulti"></el-option>
                   <el-option label="其他" value="other"></el-option>
@@ -244,8 +345,7 @@
             <div class="filter-row">
               <div class="filter-box">
                 <span class="filter-label">模式优先</span>
-                <el-select v-model="filters.modePriority" placeholder="请选择" size="small"
-                  class="expanded-select mode-priority-select">
+                <el-select v-model="filters.modePriority" placeholder="请选择" size="small" class="expanded-select mode-priority-select">
                   <el-option label="自动优先" value="autoPriority"></el-option>
                   <el-option label="制冷优先" value="coolPriority"></el-option>
                   <el-option label="制热优先" value="heatPriority"></el-option>
@@ -259,24 +359,22 @@
               </div>
               <div class="filter-box">
                 <span class="filter-label">分户计费状态</span>
-                <el-select v-model="filters.billingStatus" placeholder="请选择" size="small"
-                  class="expanded-select billing-status-select">
+                <el-select v-model="filters.billingStatus" placeholder="请选择" size="small" class="expanded-select billing-status-select">
                   <el-option label="已开通" value="activated"></el-option>
                   <el-option label="未开通" value="notActivated"></el-option>
                 </el-select>
               </div>
               <div class="filter-box">
                 <span class="filter-label">光伏类型</span>
-                <el-select v-model="filters.pvType" placeholder="请选择" size="small"
-                  class="expanded-select pv-type-select">
+                <el-select v-model="filters.pvType" placeholder="请选择" size="small" class="expanded-select pv-type-select">
                   <el-option label="光混" value="pvHybrid"></el-option>
                   <el-option label="光储" value="pvStorage"></el-option>
                 </el-select>
               </div>
             </div>
+            </div>
           </div>
-        </div>
-
+               
         <div v-if="zoneEditMode" class="edit-top-actions">
           <label class="check-all">
             <input type="checkbox">
@@ -293,18 +391,27 @@
         <div v-else class="action-row">
           <div class="action-spacer"></div>
           <div class="actions">
-            <button v-if="activeMachineTab === 'indoor' && viewMode === 'card'" type="button"
-              class="action-btn secondary" @click.stop="openSortDialog">
+            <button
+              v-if="activeMachineTab === 'indoor' && viewMode === 'card'"
+              type="button"
+              class="action-btn secondary"
+              @click.stop="openSortDialog"
+            >
               排序配置
             </button>
             <button type="button" class="action-btn secondary" @click="resetFilters">重置筛选</button>
             <button type="button" class="action-btn secondary" @click="refreshData">刷新</button>
-            <button v-if="activeMachineTab === 'outdoor'" type="button" placeholder="请选择" class="action-btn primary"
-              @click="openBatchDelete">
+            <button
+              v-if="activeMachineTab === 'outdoor'"
+              type="button"
+              placeholder="请选择"
+              class="action-btn primary"
+              @click="openBatchDelete"
+            >
               批量删除
             </button>
             <button type="button" class="action-btn primary" @click="openBatchControl">批量控制</button>
-
+            
           </div>
         </div>
 
@@ -318,7 +425,7 @@
             <div v-for="item in indoorEditCards" :key="item.id" class="device-card edit-card">
               <div class="card-title-row with-check">
                 <div class="card-title-wrap">
-                  <img src="https://static-btri.midea.com/mfs/2676/1723456813979.png" alt="indoor-icon">
+                  <img src="https://static-btri.midea.com/mfs/2676/1723456813979.png" alt="indoor-icon" >
                   <input :value="item.name" class="rename-input">
                 </div>
                 <input type="checkbox">
@@ -345,21 +452,17 @@
         </div>
 
         <div v-else-if="viewMode === 'card'" class="card-grid">
-          <div v-for="item in currentCards" :key="item.id" class="device-card"
-            :class="{ active: selectedDevice && selectedDevice.id === item.id }" @click="openDeviceDetail(item)">
+          <div v-for="item in currentCards" :key="item.id" class="device-card" :class="{ active: selectedDevice && selectedDevice.id === item.id }" @click="openDeviceDetail(item)">
             <div class="card-title-row">
               <div class="card-title-wrap">
                 <span class="card-icon">
-                  <img v-if="activeMachineTab === 'outdoor'"
-                    src="data:image/png;base64,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"
-                    alt="outdoor-icon" />
-                  <img v-else src="https://static-btri.midea.com/mfs/2676/1723456813979.png" alt="indoor-icon" />
-                </span>
+                <img v-if="activeMachineTab === 'outdoor'" src="data:image/png;base64,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" alt="outdoor-icon" />
+                <img v-else src="https://static-btri.midea.com/mfs/2676/1723456813979.png" alt="indoor-icon" />
+              </span>
                 <span class="card-title">{{ item.name }}</span>
               </div>
               <div class="card-check">
-                <input v-if="showBatchControl" type="checkbox" :checked="isDeviceSelected(item.id)"
-                  @click.stop="toggleDeviceSelect(item.id)" />
+                <input v-if="showBatchControl" type="checkbox" :checked="isDeviceSelected(item.id)" @click.stop="toggleDeviceSelect(item.id)" />
                 <i v-if="selectedDevice && selectedDevice.id === item.id" class="el-icon-check"></i>
               </div>
             </div>
@@ -384,7 +487,7 @@
                 </div>
                 <div class="card-extra">
                   <span v-if="item.extra">{{ item.extra }}</span>
-                  <img src="https://static-btri.midea.com/fe-apps/daily/btri-dcc/image/mdv-device-card/noSignal.svg" />
+                  <img src="https://static-btri.midea.com/fe-apps/daily/btri-dcc/image/mdv-device-card/noSignal.svg"/>
                 </div>
               </div>
             </div>
@@ -441,8 +544,7 @@
       </main>
     </div>
 
-    <div v-if="showImportDialog || showGuideDialog || showSmartNamingDialog || showSortDialog" class="modal-mask"
-      @click="closeAllDialogs">
+    <div v-if="showImportDialog || showGuideDialog || showSmartNamingDialog || showSortDialog" class="modal-mask" @click="closeAllDialogs">
       <div v-if="showImportDialog" class="modal-card import-modal" @click.stop>
         <div class="modal-header">
           <span>导入</span>
@@ -512,10 +614,13 @@
         <div class="modal-content">
           <div class="sort-condition-list">
             <div v-for="(item, index) in sortConditions" :key="index" class="sort-condition-item">
-              <el-select v-model="item.field" size="small" class="sort-field-select" @change="onSortFieldChange(index)"
-                placeholder="">
-                <el-option v-for="opt in getAvailableSortFields(index)" :key="opt.value" :label="opt.label"
-                  :value="opt.value">
+              <el-select v-model="item.field" size="small" class="sort-field-select" @change="onSortFieldChange(index)" placeholder="">
+                <el-option
+                  v-for="opt in getAvailableSortFields(index)"
+                  :key="opt.value"
+                  :label="opt.label"
+                  :value="opt.value"
+                >
                 </el-option>
               </el-select>
               <span class="sort-desc">{{ getSortDesc(item.field) }}</span>
@@ -525,8 +630,7 @@
               <i class="el-icon-delete sort-delete" @click="removeSortCondition(index)"></i>
             </div>
           </div>
-          <button type="button" class="add-sort-btn" @click="addSortCondition"
-            :disabled="sortConditions.length >= sortFieldOptions.length">
+          <button type="button" class="add-sort-btn" @click="addSortCondition" :disabled="sortConditions.length >= sortFieldOptions.length">
             添加排序条件
           </button>
           <div class="sort-actions">
@@ -538,369 +642,379 @@
 
     </div>
 
-    <el-drawer :visible="showDeviceDetail" :direction="'rtl'" :size="'500px'" @close="closeDeviceDetail"
-      custom-class="device-detail-drawer">
-      <div v-if="selectedDevice">
-        <div class="drawer-header">
-          <div class="header-left">
-            <img
-              :src="activeMachineTab === 'indoor' ? 'https://static-btri.midea.com/mfs/2676/1723456813979.png' : 'data:image/png;base64,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'"
-              :alt="activeMachineTab === 'indoor' ? 'indoor-icon' : 'outdoor-icon'" />
-            <span class="device-name">{{ editingName ? editNameValue : selectedDevice.name }}</span>
-          </div>
-          <button v-if="!editingName" type="button" class="edit-name-btn" @click="openEditName">编辑名称</button>
-        </div>
-
-        <div v-if="!editingName" class="detail-tabs">
-          <div v-for="tab in detailTabs" :key="tab.key"
-            :class="['detail-tab', { 'tab-active': activeDetailTab === tab.key }]" @click="activeDetailTab = tab.key">{{
-              tab.label }}</div>
-        </div>
-
-        <div v-if="!editingName" class="detail-content">
-          <template v-if="activeDetailTab === 'basic'">
-            <template v-if="activeMachineTab === 'indoor'">
-              <div class="detail-row">
-                <span class="detail-label">所属分区</span>
-                <span class="detail-value">{{ selectedDevice.zone || '未分区' }}</span>
-              </div>
-              <div class="detail-row">
-                <span class="detail-label">所属室外机名称</span>
-                <span class="detail-value">{{ selectedDevice.outdoorName || '-' }}</span>
-              </div>
-              <div class="detail-row">
-                <span class="detail-label">所属室外机条码</span>
-                <span class="detail-value">{{ selectedDevice.outdoorBarcode || '-' }}</span>
-              </div>
-              <div class="detail-row">
-                <span class="detail-label">网关条码</span>
-                <span class="detail-value">{{ selectedDevice.gatewayBarcode || '-' }}</span>
-              </div>
-              <div class="detail-row">
-                <span class="detail-label">室内机条码</span>
-                <span class="detail-value">{{ selectedDevice.indoorBarcode || '-' }}</span>
-              </div>
-              <div class="detail-row">
-                <span class="detail-label">室内机编号</span>
-                <span class="detail-value">{{ selectedDevice.indoorCode || '-' }}</span>
-              </div>
-              <div class="detail-row">
-                <span class="detail-label">室内机地址码</span>
-                <span class="detail-value">{{ selectedDevice.addressCode || '-' }}</span>
-              </div>
-              <div class="detail-row">
-                <span class="detail-label">室内机机型</span>
-                <span class="detail-value">{{ selectedDevice.model || '-' }}</span>
-              </div>
-              <div class="detail-row">
-                <span class="detail-label">室内机类型</span>
-                <span class="detail-value">{{ selectedDevice.type || '-' }}</span>
-              </div>
-              <div class="detail-row">
-                <span class="detail-label">线控器组号</span>
-                <span class="detail-value">{{ selectedDevice.controllerGroup || '-' }}</span>
-              </div>
-              <div class="detail-row">
-                <span class="detail-label">注册时间</span>
-                <span class="detail-value">{{ selectedDevice.registerTime || '-' }}</span>
-              </div>
-            </template>
-            <template v-else>
-              <div class="detail-row">
-                <span class="detail-label">室外机条码</span>
-                <span class="detail-value">{{ selectedDevice.outdoorBarcode || '-' }}</span>
-              </div>
-              <div class="detail-row">
-                <span class="detail-label">网关条码</span>
-                <span class="detail-value">{{ selectedDevice.gatewayBarcode || '-' }}</span>
-              </div>
-              <div class="detail-row">
-                <span class="detail-label">室外机编号</span>
-                <span class="detail-value">{{ selectedDevice.outdoorCode || '-' }}</span>
-              </div>
-              <div class="detail-row">
-                <span class="detail-label">室外机地址码</span>
-                <span class="detail-value">{{ selectedDevice.addressCode || '-' }}</span>
-              </div>
-              <div class="detail-row">
-                <span class="detail-label">设置内机台数</span>
-                <span class="detail-value">{{ selectedDevice.setIndoorCount || '--' }}</span>
-              </div>
-              <div class="detail-row">
-                <span class="detail-label">在线内机台数</span>
-                <span class="detail-value">{{ selectedDevice.onlineIndoorCount || '0' }}</span>
-              </div>
-              <div class="detail-row">
-                <span class="detail-label">内机开机台数</span>
-                <span class="detail-value">{{ selectedDevice.workingIndoorCount || '0' }}</span>
-              </div>
-              <div class="detail-row">
-                <span class="detail-label">注册时间</span>
-                <span class="detail-value">{{ selectedDevice.registerTime || '-' }}</span>
-              </div>
-              <div class="detail-row">
-                <span class="detail-label">网络地址</span>
-                <span class="detail-value">{{ selectedDevice.networkAddress || '-' }}</span>
-              </div>
-              <div class="detail-row">
-                <span class="detail-label">电表接入状态</span>
-                <span class="detail-value">{{ selectedDevice.meterStatus || '已接入电表' }}</span>
-              </div>
-              <div class="detail-row">
-                <span class="detail-label">电表归属类型</span>
-                <span class="detail-value">{{ selectedDevice.meterType || '第三方电表' }}</span>
-              </div>
-              <div class="detail-row">
-                <span class="detail-label">交流电表读数(kWh)</span>
-                <span class="detail-value">{{ selectedDevice.acMeterReading || '-' }}</span>
-              </div>
-              <div class="detail-row">
-                <span class="detail-label">光伏类型</span>
-                <span class="detail-value">{{ selectedDevice.pvType || '无' }}</span>
-              </div>
-              <div class="detail-row">
-                <span class="detail-label">直流电表读数(kWh)</span>
-                <span class="detail-value">{{ selectedDevice.dcMeterReading || '-' }}</span>
-              </div>
-            </template>
-          </template>
-
-          <template v-if="activeDetailTab === 'related' && activeMachineTab === 'outdoor'">
-            <div class="related-header">
-              <span class="related-title">室外机名称: {{ selectedDevice.name }}</span>
+      <el-drawer
+        :visible="showDeviceDetail"
+        :direction="'rtl'"
+        :size="'500px'"
+        @close="closeDeviceDetail"
+        custom-class="device-detail-drawer"
+      >
+        <div v-if="selectedDevice">
+          <div class="drawer-header">
+            <div class="header-left">
+              <img :src="activeMachineTab === 'indoor' ? 'https://static-btri.midea.com/mfs/2676/1723456813979.png' : 'data:image/png;base64,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'" :alt="activeMachineTab === 'indoor' ? 'indoor-icon' : 'outdoor-icon'" />
+              <span class="device-name">{{ editingName ? editNameValue : selectedDevice.name }}</span>
             </div>
-            <div class="related-section">
-              <div class="section-header" @click="toggleRelatedSection">
-                <i :class="['el-icon', relatedSectionExpanded ? 'el-icon-arrow-down' : 'el-icon-arrow-right']"></i>
-                <span>未分区({{ relatedIndoors.length }}台设备)</span>
+            <button v-if="!editingName" type="button" class="edit-name-btn" @click="openEditName">编辑名称</button>
+          </div>
+
+          <div v-if="!editingName" class="detail-tabs">
+            <div 
+              v-for="tab in detailTabs" 
+              :key="tab.key"
+              :class="['detail-tab', { 'tab-active': activeDetailTab === tab.key }]"
+              @click="activeDetailTab = tab.key"
+            >{{ tab.label }}</div>
+          </div>
+
+          <div v-if="!editingName" class="detail-content">
+            <template v-if="activeDetailTab === 'basic'">
+              <template v-if="activeMachineTab === 'indoor'">
+                <div class="detail-row">
+                  <span class="detail-label">所属分区</span>
+                  <span class="detail-value">{{ selectedDevice.zone || '未分区' }}</span>
+                </div>
+                <div class="detail-row">
+                  <span class="detail-label">所属室外机名称</span>
+                  <span class="detail-value">{{ selectedDevice.outdoorName || '-' }}</span>
+                </div>
+                <div class="detail-row">
+                  <span class="detail-label">所属室外机条码</span>
+                  <span class="detail-value">{{ selectedDevice.outdoorBarcode || '-' }}</span>
+                </div>
+                <div class="detail-row">
+                  <span class="detail-label">网关条码</span>
+                  <span class="detail-value">{{ selectedDevice.gatewayBarcode || '-' }}</span>
+                </div>
+                <div class="detail-row">
+                  <span class="detail-label">室内机条码</span>
+                  <span class="detail-value">{{ selectedDevice.indoorBarcode || '-' }}</span>
+                </div>
+                <div class="detail-row">
+                  <span class="detail-label">室内机编号</span>
+                  <span class="detail-value">{{ selectedDevice.indoorCode || '-' }}</span>
+                </div>
+                <div class="detail-row">
+                  <span class="detail-label">室内机地址码</span>
+                  <span class="detail-value">{{ selectedDevice.addressCode || '-' }}</span>
+                </div>
+                <div class="detail-row">
+                  <span class="detail-label">室内机机型</span>
+                  <span class="detail-value">{{ selectedDevice.model || '-' }}</span>
+                </div>
+                <div class="detail-row">
+                  <span class="detail-label">室内机类型</span>
+                  <span class="detail-value">{{ selectedDevice.type || '-' }}</span>
+                </div>
+                <div class="detail-row">
+                  <span class="detail-label">线控器组号</span>
+                  <span class="detail-value">{{ selectedDevice.controllerGroup || '-' }}</span>
+                </div>
+                <div class="detail-row">
+                  <span class="detail-label">注册时间</span>
+                  <span class="detail-value">{{ selectedDevice.registerTime || '-' }}</span>
+                </div>
+              </template>
+              <template v-else>
+                <div class="detail-row">
+                  <span class="detail-label">室外机条码</span>
+                  <span class="detail-value">{{ selectedDevice.outdoorBarcode || '-' }}</span>
+                </div>
+                <div class="detail-row">
+                  <span class="detail-label">网关条码</span>
+                  <span class="detail-value">{{ selectedDevice.gatewayBarcode || '-' }}</span>
+                </div>
+                <div class="detail-row">
+                  <span class="detail-label">室外机编号</span>
+                  <span class="detail-value">{{ selectedDevice.outdoorCode || '-' }}</span>
+                </div>
+                <div class="detail-row">
+                  <span class="detail-label">室外机地址码</span>
+                  <span class="detail-value">{{ selectedDevice.addressCode || '-' }}</span>
+                </div>
+                <div class="detail-row">
+                  <span class="detail-label">设置内机台数</span>
+                  <span class="detail-value">{{ selectedDevice.setIndoorCount || '--' }}</span>
+                </div>
+                <div class="detail-row">
+                  <span class="detail-label">在线内机台数</span>
+                  <span class="detail-value">{{ selectedDevice.onlineIndoorCount || '0' }}</span>
+                </div>
+                <div class="detail-row">
+                  <span class="detail-label">内机开机台数</span>
+                  <span class="detail-value">{{ selectedDevice.workingIndoorCount || '0' }}</span>
+                </div>
+                <div class="detail-row">
+                  <span class="detail-label">注册时间</span>
+                  <span class="detail-value">{{ selectedDevice.registerTime || '-' }}</span>
+                </div>
+                <div class="detail-row">
+                  <span class="detail-label">网络地址</span>
+                  <span class="detail-value">{{ selectedDevice.networkAddress || '-' }}</span>
+                </div>
+                <div class="detail-row">
+                  <span class="detail-label">电表接入状态</span>
+                  <span class="detail-value">{{ selectedDevice.meterStatus || '已接入电表' }}</span>
+                </div>
+                <div class="detail-row">
+                  <span class="detail-label">电表归属类型</span>
+                  <span class="detail-value">{{ selectedDevice.meterType || '第三方电表' }}</span>
+                </div>
+                <div class="detail-row">
+                  <span class="detail-label">交流电表读数(kWh)</span>
+                  <span class="detail-value">{{ selectedDevice.acMeterReading || '-' }}</span>
+                </div>
+                <div class="detail-row">
+                  <span class="detail-label">光伏类型</span>
+                  <span class="detail-value">{{ selectedDevice.pvType || '无' }}</span>
+                </div>
+                <div class="detail-row">
+                  <span class="detail-label">直流电表读数(kWh)</span>
+                  <span class="detail-value">{{ selectedDevice.dcMeterReading || '-' }}</span>
+                </div>
+              </template>
+            </template>
+
+            <template v-if="activeDetailTab === 'related' && activeMachineTab === 'outdoor'">
+              <div class="related-header">
+                <span class="related-title">室外机名称: {{ selectedDevice.name }}</span>
               </div>
-              <div v-if="relatedSectionExpanded" class="related-list">
-                <div v-for="indoor in relatedIndoors" :key="indoor.id" class="related-item">
-                  <span class="item-name">{{ indoor.name }}</span>
-                  <span class="item-temp">{{ indoor.temperature || '--' }}°C</span>
-                  <span :class="['item-status', indoor.status === 'online' ? 'online' : 'offline']">
-                    {{ indoor.status === 'online' ? '离' : '在线' }}线
-                  </span>
-                  <span class="item-detail">{{ indoor.detail || '--' }}</span>
+              <div class="related-section">
+                <div class="section-header" @click="toggleRelatedSection">
+                  <i :class="['el-icon', relatedSectionExpanded ? 'el-icon-arrow-down' : 'el-icon-arrow-right']"></i>
+                  <span>未分区({{ relatedIndoors.length }}台设备)</span>
+                </div>
+                <div v-if="relatedSectionExpanded" class="related-list">
+                  <div v-for="indoor in relatedIndoors" :key="indoor.id" class="related-item">
+                    <span class="item-name">{{ indoor.name }}</span>
+                    <span class="item-temp">{{ indoor.temperature || '--' }}°C</span>
+                    <span :class="['item-status', indoor.status === 'online' ? 'online' : 'offline']">
+                      {{ indoor.status === 'online' ? '离' : '在线' }}线
+                    </span>
+                    <span class="item-detail">{{ indoor.detail || '--' }}</span>
+                  </div>
+                </div>
+              </div>
+            </template>
+          </div>
+
+          <div v-else class="edit-name-content">
+            <input v-model="editNameValue" class="name-input" placeholder="请输入设备名称" />
+            <div class="input-actions">
+              <span class="char-count">{{ editNameValue.length }}/12</span>
+              <button type="button" class="cancel-btn" @click="cancelEditName">取消</button>
+              <button type="button" class="confirm-btn" @click="confirmEditName">确认</button>
+            </div>
+            <div class="smart-naming">
+              <div class="smart-title">快捷命名</div>
+              <div v-for="(group, key) in smartNamingOptions" :key="key" class="smart-group">
+                <span class="group-label">{{ key }}</span>
+                <div class="group-buttons">
+                  <button
+                    v-for="option in group"
+                    :key="option"
+                    type="button"
+                    class="smart-btn"
+                    @click="selectSmartName(option)"
+                  >
+                    {{ option }}
+                  </button>
                 </div>
               </div>
             </div>
+          </div>
+        </div>
+      </el-drawer>
+
+      <el-drawer
+        :visible="showBatchControl"
+        :direction="'rtl'"
+        :size="'500px'"
+        @close="closeBatchControl"
+        custom-class="batch-control-drawer"
+      >
+        <div class="batch-control-header">
+          <span class="batch-title">批量控制</span>
+          <i class="el-icon-close" @click="closeBatchControl"></i>
+        </div>
+
+        <div class="batch-tabs">
+          <div 
+            v-for="tab in batchTabs" 
+            :key="tab.key"
+            :class="['batch-tab', { 'batch-tab-active': activeBatchTab === tab.key }]"
+            @click="activeBatchTab = tab.key"
+          >{{ tab.label }}</div>
+        </div>
+
+        <div class="batch-content">
+          <template v-if="activeBatchTab === 'normal'">
+            <div class="control-section">
+              <div class="section-title">设备开关</div>
+              <div class="control-buttons">
+                <button :class="['control-btn', { active: batchControlData.power === 'off' }]" @click="batchControlData.power = 'off'">关机</button>
+                <button :class="['control-btn', { active: batchControlData.power === 'on' }]" @click="batchControlData.power = 'on'">开机</button>
+              </div>
+            </div>
+
+            <div class="control-section">
+              <div class="section-title">设定模式 <span class="tip">(不支持全热交换器)</span></div>
+              <div class="control-buttons">
+                <button :class="['control-btn', { active: batchControlData.mode === 'none' }]" @click="batchControlData.mode = 'none'">不设定</button>
+                <button :class="['control-btn', { active: batchControlData.mode === 'fan' }]" @click="batchControlData.mode = 'fan'">送风</button>
+                <button :class="['control-btn', { active: batchControlData.mode === 'cool' }]" @click="batchControlData.mode = 'cool'">制冷</button>
+                <button :class="['control-btn', { active: batchControlData.mode === 'heat' }]" @click="batchControlData.mode = 'heat'">制热</button>
+                <button :class="['control-btn', { active: batchControlData.mode === 'dehumidify' }]" @click="batchControlData.mode = 'dehumidify'">除湿</button>
+              </div>
+            </div>
+
+            <div class="control-section">
+              <div class="section-title">设定温度</div>
+              <div class="temp-control">
+                <span class="temp-label">16°C</span>
+                <el-slider v-model="batchControlData.temperature" :min="16" :max="30" :step="0.5" class="temp-slider" />
+                <span class="temp-value">{{ batchControlData.temperature }}°C</span>
+              </div>
+            </div>
+
+            <div class="control-section">
+              <div class="section-title">设定风档</div>
+              <div class="wind-control">
+                <button :class="['wind-btn', { active: batchControlData.windMode === 'auto' }]" @click="batchControlData.windMode = 'auto'">自动</button>
+                <el-slider v-model="batchControlData.windLevel" :min="1" :max="7" :step="1" class="wind-slider" />
+                <span class="wind-value">{{ batchControlData.windLevel }}档</span>
+              </div>
+            </div>
+          </template>
+
+          <template v-if="activeBatchTab === 'lock'">
+            <div class="control-section">
+              <div class="section-title">只响应开机</div>
+              <div class="control-buttons">
+                <button :class="['control-btn', { active: batchControlData.onlyOn === 'none' }]" @click="batchControlData.onlyOn = 'none'">不设定</button>
+                <button :class="['control-btn', { active: batchControlData.onlyOn === 'unlocked' }]" @click="batchControlData.onlyOn = 'unlocked'">未锁定</button>
+                <button :class="['control-btn', { active: batchControlData.onlyOn === 'locked' }]" @click="batchControlData.onlyOn = 'locked'">锁定</button>
+              </div>
+            </div>
+
+            <div class="control-section">
+              <div class="section-title">只响应关机</div>
+              <div class="control-buttons">
+                <button :class="['control-btn', { active: batchControlData.onlyOff === 'none' }]" @click="batchControlData.onlyOff = 'none'">不设定</button>
+                <button :class="['control-btn', { active: batchControlData.onlyOff === 'unlocked' }]" @click="batchControlData.onlyOff = 'unlocked'">未锁定</button>
+                <button :class="['control-btn', { active: batchControlData.onlyOff === 'locked' }]" @click="batchControlData.onlyOff = 'locked'">锁定</button>
+              </div>
+            </div>
+
+            <div class="control-section">
+              <div class="section-title">模式锁定 <span class="tip">(部分内机不支持锁定送风功能，不会影响送风模式锁定控制)</span></div>
+              <div class="control-buttons">
+                <button :class="['control-btn', { active: batchControlData.modeLock === 'none' }]" @click="batchControlData.modeLock = 'none'">不设定</button>
+                <button :class="['control-btn', { active: batchControlData.modeLock === 'unlocked' }]" @click="batchControlData.modeLock = 'unlocked'">未锁定</button>
+                <button :class="['control-btn', { active: batchControlData.modeLock === 'cool' }]" @click="batchControlData.modeLock = 'cool'">锁定制冷</button>
+                <button :class="['control-btn', { active: batchControlData.modeLock === 'heat' }]" @click="batchControlData.modeLock = 'heat'">锁定制热</button>
+                <button :class="['control-btn', { active: batchControlData.modeLock === 'fan' }]" @click="batchControlData.modeLock = 'fan'">锁定送风</button>
+              </div>
+            </div>
+
+            <div class="control-section">
+              <div class="section-title">风挡锁定</div>
+              <div class="control-buttons">
+                <button :class="['control-btn', { active: batchControlData.windLock === 'none' }]" @click="batchControlData.windLock = 'none'">不设定</button>
+                <button :class="['control-btn', { active: batchControlData.windLock === 'unlocked' }]" @click="batchControlData.windLock = 'unlocked'">未锁定</button>
+                <button :class="['control-btn', { active: batchControlData.windLock === 'locked' }]" @click="batchControlData.windLock = 'locked'">锁定</button>
+              </div>
+            </div>
+
+            <div class="control-section">
+              <div class="section-title">禁用线控器</div>
+              <div class="control-buttons">
+                <button :class="['control-btn', { active: batchControlData.disableController === 'none' }]" @click="batchControlData.disableController = 'none'">不设定</button>
+                <button :class="['control-btn', { active: batchControlData.disableController === 'unlocked' }]" @click="batchControlData.disableController = 'unlocked'">未锁定</button>
+                <button :class="['control-btn', { active: batchControlData.disableController === 'locked' }]" @click="batchControlData.disableController = 'locked'">锁定</button>
+              </div>
+            </div>
           </template>
         </div>
 
-        <div v-else class="edit-name-content">
-          <input v-model="editNameValue" class="name-input" placeholder="请输入设备名称" />
-          <div class="input-actions">
-            <span class="char-count">{{ editNameValue.length }}/12</span>
-            <button type="button" class="cancel-btn" @click="cancelEditName">取消</button>
-            <button type="button" class="confirm-btn" @click="confirmEditName">确认</button>
+        <div class="batch-footer">
+          <button type="button" class="batch-btn cancel" @click="closeBatchControl">取消</button>
+          <button type="button" class="batch-btn confirm" @click="confirmBatchControl">指令下发</button>
+        </div>
+      </el-drawer>
+
+      <el-dialog
+        :visible="showBatchDelete"
+        :title="'批量删除'"
+        :width="'600px'"
+        @close="closeBatchDelete"
+        custom-class="batch-delete-dialog"
+      >
+        <div class="batch-content">
+          <div class="control-section">
+            <div class="section-title">
+              <input type="checkbox" :checked="selectedDevices.length === currentCards.length" @click="toggleAllDevices" />
+              全选（{{ selectedDevices.length }}/{{ currentCards.length }}）
+            </div>
           </div>
-          <div class="smart-naming">
-            <div class="smart-title">快捷命名</div>
-            <div v-for="(group, key) in smartNamingOptions" :key="key" class="smart-group">
-              <span class="group-label">{{ key }}</span>
-              <div class="group-buttons">
-                <button v-for="option in group" :key="option" type="button" class="smart-btn"
-                  @click="selectSmartName(option)">
-                  {{ option }}
-                </button>
+
+          <div class="delete-device-list">
+            <div v-for="item in currentCards" :key="item.id" class="delete-device-item">
+              <input type="checkbox" :checked="isDeviceSelected(item.id)" @click="toggleDeviceSelect(item.id)" />
+              <div class="delete-device-info">
+                <span class="delete-device-name">{{ item.name }}</span>
+                <span class="delete-device-detail">交流电表：{{ item.acPower || '-' }}</span>
+                <span class="delete-device-detail">直流电表：{{ item.dcPower || '-' }}</span>
               </div>
             </div>
           </div>
         </div>
-      </div>
-    </el-drawer>
 
-    <el-drawer :visible="showBatchControl" :direction="'rtl'" :size="'500px'" @close="closeBatchControl"
-      custom-class="batch-control-drawer">
-      <div class="batch-control-header">
-        <span class="batch-title">批量控制</span>
-        <i class="el-icon-close" @click="closeBatchControl"></i>
-      </div>
-
-      <div class="batch-tabs">
-        <div v-for="tab in batchTabs" :key="tab.key"
-          :class="['batch-tab', { 'batch-tab-active': activeBatchTab === tab.key }]" @click="activeBatchTab = tab.key">
-          {{
-            tab.label }}</div>
-      </div>
-
-      <div class="batch-content">
-        <template v-if="activeBatchTab === 'normal'">
-          <div class="control-section">
-            <div class="section-title">设备开关</div>
-            <div class="control-buttons">
-              <button :class="['control-btn', { active: batchControlData.power === 'off' }]"
-                @click="batchControlData.power = 'off'">关机</button>
-              <button :class="['control-btn', { active: batchControlData.power === 'on' }]"
-                @click="batchControlData.power = 'on'">开机</button>
-            </div>
-          </div>
-
-          <div class="control-section">
-            <div class="section-title">设定模式 <span class="tip">(不支持全热交换器)</span></div>
-            <div class="control-buttons">
-              <button :class="['control-btn', { active: batchControlData.mode === 'none' }]"
-                @click="batchControlData.mode = 'none'">不设定</button>
-              <button :class="['control-btn', { active: batchControlData.mode === 'fan' }]"
-                @click="batchControlData.mode = 'fan'">送风</button>
-              <button :class="['control-btn', { active: batchControlData.mode === 'cool' }]"
-                @click="batchControlData.mode = 'cool'">制冷</button>
-              <button :class="['control-btn', { active: batchControlData.mode === 'heat' }]"
-                @click="batchControlData.mode = 'heat'">制热</button>
-              <button :class="['control-btn', { active: batchControlData.mode === 'dehumidify' }]"
-                @click="batchControlData.mode = 'dehumidify'">除湿</button>
-            </div>
-          </div>
-
-          <div class="control-section">
-            <div class="section-title">设定温度</div>
-            <div class="temp-control">
-              <span class="temp-label">16°C</span>
-              <el-slider v-model="batchControlData.temperature" :min="16" :max="30" :step="0.5" class="temp-slider" />
-              <span class="temp-value">{{ batchControlData.temperature }}°C</span>
-            </div>
-          </div>
-
-          <div class="control-section">
-            <div class="section-title">设定风档</div>
-            <div class="wind-control">
-              <button :class="['wind-btn', { active: batchControlData.windMode === 'auto' }]"
-                @click="batchControlData.windMode = 'auto'">自动</button>
-              <el-slider v-model="batchControlData.windLevel" :min="1" :max="7" :step="1" class="wind-slider" />
-              <span class="wind-value">{{ batchControlData.windLevel }}档</span>
-            </div>
-          </div>
+        <template #footer>
+          <button type="button" class="batch-btn cancel" @click="closeBatchDelete">取消</button>
+          <button type="button" class="batch-btn confirm" @click="confirmBatchDelete">删除</button>
         </template>
+      </el-dialog>
 
-        <template v-if="activeBatchTab === 'lock'">
-          <div class="control-section">
-            <div class="section-title">只响应开机</div>
-            <div class="control-buttons">
-              <button :class="['control-btn', { active: batchControlData.onlyOn === 'none' }]"
-                @click="batchControlData.onlyOn = 'none'">不设定</button>
-              <button :class="['control-btn', { active: batchControlData.onlyOn === 'unlocked' }]"
-                @click="batchControlData.onlyOn = 'unlocked'">未锁定</button>
-              <button :class="['control-btn', { active: batchControlData.onlyOn === 'locked' }]"
-                @click="batchControlData.onlyOn = 'locked'">锁定</button>
-            </div>
+      <el-dialog
+        :visible="showCreateZoneDialog"
+        :title="'新建分区'"
+        :width="'400px'"
+        @close="closeCreateZoneDialog"
+        custom-class="create-zone-dialog"
+      >
+        <div class="create-zone-options">
+          <div class="zone-option" :class="{ selected: selectedZoneType === 'peer' }" @click="selectZoneType('peer')">
+            <span class="option-icon">◇</span>
+            <span class="option-label">同级分区</span>
           </div>
+          <div class="zone-option" :class="{ selected: selectedZoneType === 'child' }" @click="selectZoneType('child')">
+            <span class="option-icon">◆</span>
+            <span class="option-label">子级分区</span>
+          </div>
+        </div>
 
-          <div class="control-section">
-            <div class="section-title">只响应关机</div>
-            <div class="control-buttons">
-              <button :class="['control-btn', { active: batchControlData.onlyOff === 'none' }]"
-                @click="batchControlData.onlyOff = 'none'">不设定</button>
-              <button :class="['control-btn', { active: batchControlData.onlyOff === 'unlocked' }]"
-                @click="batchControlData.onlyOff = 'unlocked'">未锁定</button>
-              <button :class="['control-btn', { active: batchControlData.onlyOff === 'locked' }]"
-                @click="batchControlData.onlyOff = 'locked'">锁定</button>
-            </div>
-          </div>
-
-          <div class="control-section">
-            <div class="section-title">模式锁定 <span class="tip">(部分内机不支持锁定送风功能，不会影响送风模式锁定控制)</span></div>
-            <div class="control-buttons">
-              <button :class="['control-btn', { active: batchControlData.modeLock === 'none' }]"
-                @click="batchControlData.modeLock = 'none'">不设定</button>
-              <button :class="['control-btn', { active: batchControlData.modeLock === 'unlocked' }]"
-                @click="batchControlData.modeLock = 'unlocked'">未锁定</button>
-              <button :class="['control-btn', { active: batchControlData.modeLock === 'cool' }]"
-                @click="batchControlData.modeLock = 'cool'">锁定制冷</button>
-              <button :class="['control-btn', { active: batchControlData.modeLock === 'heat' }]"
-                @click="batchControlData.modeLock = 'heat'">锁定制热</button>
-              <button :class="['control-btn', { active: batchControlData.modeLock === 'fan' }]"
-                @click="batchControlData.modeLock = 'fan'">锁定送风</button>
-            </div>
-          </div>
-
-          <div class="control-section">
-            <div class="section-title">风挡锁定</div>
-            <div class="control-buttons">
-              <button :class="['control-btn', { active: batchControlData.windLock === 'none' }]"
-                @click="batchControlData.windLock = 'none'">不设定</button>
-              <button :class="['control-btn', { active: batchControlData.windLock === 'unlocked' }]"
-                @click="batchControlData.windLock = 'unlocked'">未锁定</button>
-              <button :class="['control-btn', { active: batchControlData.windLock === 'locked' }]"
-                @click="batchControlData.windLock = 'locked'">锁定</button>
-            </div>
-          </div>
-
-          <div class="control-section">
-            <div class="section-title">禁用线控器</div>
-            <div class="control-buttons">
-              <button :class="['control-btn', { active: batchControlData.disableController === 'none' }]"
-                @click="batchControlData.disableController = 'none'">不设定</button>
-              <button :class="['control-btn', { active: batchControlData.disableController === 'unlocked' }]"
-                @click="batchControlData.disableController = 'unlocked'">未锁定</button>
-              <button :class="['control-btn', { active: batchControlData.disableController === 'locked' }]"
-                @click="batchControlData.disableController = 'locked'">锁定</button>
-            </div>
-          </div>
+        <template #footer>
+          <button type="button" class="batch-btn cancel" @click="closeCreateZoneDialog">取消</button>
+          <button type="button" class="batch-btn confirm" @click="confirmCreateZone">确定</button>
         </template>
-      </div>
-
-      <div class="batch-footer">
-        <button type="button" class="batch-btn cancel" @click="closeBatchControl">取消</button>
-        <button type="button" class="batch-btn confirm" @click="confirmBatchControl">指令下发</button>
-      </div>
-    </el-drawer>
-
-    <el-dialog :visible="showBatchDelete" :title="'批量删除'" :width="'600px'" @close="closeBatchDelete"
-      custom-class="batch-delete-dialog">
-      <div class="batch-content">
-        <div class="control-section">
-          <div class="section-title">
-            <input type="checkbox" :checked="selectedDevices.length === currentCards.length"
-              @click="toggleAllDevices" />
-            全选（{{ selectedDevices.length }}/{{ currentCards.length }}）
-          </div>
-        </div>
-
-        <div class="delete-device-list">
-          <div v-for="item in currentCards" :key="item.id" class="delete-device-item">
-            <input type="checkbox" :checked="isDeviceSelected(item.id)" @click="toggleDeviceSelect(item.id)" />
-            <div class="delete-device-info">
-              <span class="delete-device-name">{{ item.name }}</span>
-              <span class="delete-device-detail">交流电表：{{ item.acPower || '-' }}</span>
-              <span class="delete-device-detail">直流电表：{{ item.dcPower || '-' }}</span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <template #footer>
-        <button type="button" class="batch-btn cancel" @click="closeBatchDelete">取消</button>
-        <button type="button" class="batch-btn confirm" @click="confirmBatchDelete">删除</button>
-      </template>
-    </el-dialog>
-
-    <el-dialog :visible="showCreateZoneDialog" :title="'新建分区'" :width="'400px'" @close="closeCreateZoneDialog"
-      custom-class="create-zone-dialog">
-      <div class="create-zone-options">
-        <div class="zone-option" :class="{ selected: selectedZoneType === 'peer' }" @click="selectZoneType('peer')">
-          <span class="option-icon">◇</span>
-          <span class="option-label">同级分区</span>
-        </div>
-        <div class="zone-option" :class="{ selected: selectedZoneType === 'child' }" @click="selectZoneType('child')">
-          <span class="option-icon">◆</span>
-          <span class="option-label">子级分区</span>
-        </div>
-      </div>
-
-      <template #footer>
-        <button type="button" class="batch-btn cancel" @click="closeCreateZoneDialog">取消</button>
-        <button type="button" class="batch-btn confirm" @click="confirmCreateZone">确定</button>
-      </template>
-    </el-dialog>
+      </el-dialog>
+    </template>
+    <quick-control-panel v-else-if="activeTopTab === 'control'" />
+    <control-logs-panel v-else />
   </div>
 </template>
 
 <script>
-import { Image } from 'element-ui';
+import QuickControlPanel from './components/QuickControlPanel'
+import ControlLogsPanel from './components/ControlLogsPanel'
 
 export default {
   name: 'EquipmentManagement',
+  components: {
+    QuickControlPanel,
+    ControlLogsPanel
+  },
   data() {
     return {
       activeTopTab: 'management',
@@ -1094,68 +1208,67 @@ export default {
       editableZoneGroups: [],
       props: { multiple: true },
       indoorOptions: [{
-        value: 1,
-        label: '运行',
-        children: [{
-          value: 2,
-          label: '制冷',
+          value: 1,
+          label: '运行',
+          children: [{
+            value: 2,
+            label: '制冷',
+          }, {
+            value: 3,
+            label: '制热',
+          }, {
+            value: 4,
+            label: '送风',
+          },{
+            value: 5,
+            label: '除湿',
+          },{
+            value: 6,
+            label: '免费制冷',
+          },{
+            value: 7,
+            label: '热交换',
+          },{
+            value: 8,
+            label: '旁通',
+          },{
+            value: 9,
+            label: '自动',
+          }]
         }, {
-          value: 3,
-          label: '制热',
+          value: 10,
+          label: '关机',
         }, {
-          value: 4,
-          label: '送风',
-        }, {
-          value: 5,
-          label: '除湿',
-        }, {
-          value: 6,
-          label: '免费制冷',
-        }, {
-          value: 7,
-          label: '热交换',
-        }, {
-          value: 8,
-          label: '旁通',
-        }, {
-          value: 9,
-          label: '自动',
-        }]
-      }, {
-        value: 10,
-        label: '关机',
-      }, {
-        value: 11,
-        label: '故障',
-        children: [{
-          value: 12,
-          label: '制冷',
-        }, {
-          value: 13,
-          label: '制热',
-        }, {
-          value: 14,
-          label: '送风',
-        }, {
-          value: 15,
-          label: '除湿',
-        }, {
-          value: 16,
-          label: '免费制冷',
-        }, {
-          value: 17,
-          label: '热交换',
-        }, {
-          value: 18,
-          label: '旁通',
-        }, {
-          value: 19,
-          label: '自动',
-        }]
-      }, {
-        value: 20,
-        label: '离线',
-      }],
+          value: 11,
+          label: '故障',
+          children: [{
+            value: 12,
+            label: '制冷',
+          }, {
+            value: 13,
+            label: '制热',
+          }, {
+            value: 14,
+            label: '送风',
+          },{
+            value: 15,
+            label: '除湿',
+          },{
+            value: 16,
+            label: '免费制冷',
+          },{
+            value: 17,
+            label: '热交换',
+          },{
+            value: 18,
+            label: '旁通',
+          },{
+            value: 19,
+            label: '自动',
+          }]},{
+          value: 20,
+          label: '离线',  
+        }],
       runningOptions: [
         { value: 'running', label: '运行' },
         { value: 'off', label: '关机' },
@@ -1268,7 +1381,7 @@ export default {
       return this.outdoorTableRows.filter(row => row.name.toLowerCase().includes(keyword))
     },
     searchFieldOptions() {
-      if (this.activeMachineTab === 'indoor') {
+      if ( this.activeMachineTab === 'indoor') {
         return [
           { value: 'name', label: '设备名称' },
           { value: 'indoorBarcode', label: '室内机条码' },
@@ -1297,6 +1410,15 @@ export default {
     }
   },
   methods: {
+    handleTopTabChange(tabKey) {
+      this.activeTopTab = tabKey
+      this.closeAllDialogs()
+      this.closeBatchControl()
+      this.closeBatchDelete()
+      this.closeCreateZoneDialog()
+      this.showMoreMenu = false
+      this.nodeMenuId = ''
+    },
     openDeviceDetail(device) {
       this.showSortDialog = false
       this.selectedDevice = device
@@ -1540,7 +1662,7 @@ export default {
     selectZone(id) {
       this.selectedZone = id
     },
-    handleCascaderChange(value) {
+    handleCascaderChange(value)  {
       if (!value || value.length === 0 || !value[0] || value[0].length === 0) {
         this.indoorOptions.forEach(item => {
           this.$set(item, 'disabled', false)
@@ -1582,13 +1704,13 @@ export default {
     },
     getMockSuggestions() {
       const keyword = this.filters.keyword.toLowerCase()
-
+      
       if (this.currentSearchField === '设备名称') {
         return this.indoorCards
           .filter(card => card.name.toLowerCase().includes(keyword))
           .map(card => card.name)
       }
-
+      
       const mockData = {
         '室内机条码': ['0000CC311178CCM262C254100625902D', '0000CC311178CCM262C2541006270K1D'],
         '室内机编号': ['IDU-001', 'IDU-002', 'IDU-003', 'IDU-004', 'IDU-005'],
@@ -1740,7 +1862,6 @@ export default {
   display: flex;
   min-height: calc(100vh - 125px);
   position: relative;
-  overflow: auto;
 }
 
 .sidebar {
@@ -1748,7 +1869,7 @@ export default {
   width: 278px;
   border-right: 1px solid #edf0f5;
   background: #fff;
-  padding: 0 0 0 20px;
+  padding:0 0 0 20px;
   transition: width 0.3s ease;
   flex-shrink: 0;
   z-index: 10;
@@ -1800,7 +1921,6 @@ export default {
 
 .machine-switch {
   display: flex;
-  justify-content: space-around;
   gap: 32px;
   padding: 0 0 0 2px;
 }
@@ -2607,8 +2727,7 @@ export default {
   flex: 1;
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 5px;
-  margin-left: -45px;
+  gap: 12px;
 }
 
 .device-card {
@@ -2617,7 +2736,9 @@ export default {
   background: #fff;
   padding: 12px;
   cursor: pointer;
-  width: 359px;
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
 }
 
 .device-card.active {
@@ -2669,8 +2790,7 @@ export default {
   width: 28px;
   height: 28px;
 }
-
-.card-title-wrap img {
+.card-title-wrap img{
   height: 28px;
   width: 28px;
 }
@@ -3032,7 +3152,6 @@ export default {
 }
 
 @media (max-width: 1600px) {
-
   .card-grid,
   .edit-card-grid {
     grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -3061,7 +3180,6 @@ export default {
 }
 
 @media (max-width: 768px) {
-
   .card-grid,
   .edit-card-grid {
     grid-template-columns: 1fr;
@@ -3081,17 +3199,16 @@ export default {
   .confirm-modal {
     width: calc(100vw - 24px);
   }
-
-  .deviceImg___r8YND ant-btri-tooltip-box {
-    width: 28px;
-    height: 28px;
+  .deviceImg___r8YND ant-btri-tooltip-box{
+     width: 28px;
+     height: 28px;
   }
-
-  .el-select .el-input.is-focus .el-input__inner {
+  .el-select .el-input.is-focus .el-input__inner
+ {
     border-color: #409EFF;
     width: 385.72px;
     height: 32px;
-  }
+}
 }
 
 .device-detail-modal {
