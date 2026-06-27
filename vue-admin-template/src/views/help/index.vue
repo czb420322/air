@@ -166,8 +166,12 @@ $dark_gray: #889aa4;
 $light_gray: #eee;
 
 .login-container {
-    min-height: 100%;
-    width: 100%;
+    height: calc(100vh - 100px);
+    border-width: medium;
+    border-style: none;
+    border-color: currentcolor;
+    border-image: initial;
+    margin: 20px;
     background: url(https://static-btri.midea.com/images/apps/sso/login-back.jpg) no-repeat;
     background-size: 100% 100%;
     overflow: hidden;
