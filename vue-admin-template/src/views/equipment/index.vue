@@ -35,7 +35,7 @@
                 :expand-on-click-node="false" @node-click="handleZoneNodeClick">
                 <span slot-scope="{ node, data }" class="custom-tree-node">
                   <span :class="['editable-zone-name', { active: selectedEditZone === data.id }]">{{ node.label
-                  }}</span>
+                    }}</span>
                   <span class="editable-zone-actions">
                     <button type="button" class="icon-btn" @click.stop="toggleNodeMenu(data.id)">+</button>
                     <button type="button" class="icon-btn" @click.stop>✎</button>
@@ -283,7 +283,7 @@
 
           <div v-if="zoneEditMode" class="edit-top-actions">
             <label class="check-all">
-              <input type="checkbox">
+              <input class="check-all-checkbox" type="checkbox">
               全选（0/22）
             </label>
 
@@ -323,9 +323,9 @@
                 <div class="card-title-row with-check">
                   <div class="card-title-wrap">
                     <img src="https://static-btri.midea.com/mfs/2676/1723456813979.png" alt="indoor-icon">
-                    <input :value="item.name" class="rename-input">
                   </div>
-                  <input type="checkbox">
+                  <input :value="item.name" class="rename-input">
+                  <input type="checkbox" class="rename-checkbox">
                 </div>
 
                 <div class="card-body">
@@ -341,7 +341,10 @@
                       <span>|</span>
                       <span>{{ item.status }}</span>
                     </div>
-                    <i class="el-icon-close"></i>
+                    <div class="card-extra">
+                      <img
+                        src="https://static-btri.midea.com/fe-apps/daily/btri-dcc/image/mdv-device-card/noSignal.svg" />
+                    </div>
                   </div>
                 </div>
               </div>
@@ -412,7 +415,7 @@
                 </tr>
               </thead>
               <tbody>
-                <tr v-for="row in currentTableRows" :key="row.id">
+                <tr v-for="row in pagedTableRows" :key="row.id">
                   <td>{{ row.code }}</td>
                   <td>{{ row.name }}</td>
                   <td>
@@ -436,10 +439,13 @@
             <div class="pagination-bar">
               <span>{{ currentPaginationText }}</span>
               <div class="pagination-controls">
-                <button type="button" class="page-btn">‹</button>
-                <button type="button" class="page-btn active">1</button>
-                <button type="button" class="page-btn">2</button>
-                <button type="button" class="page-btn">›</button>
+                <button type="button" class="page-btn" :disabled="currentPage === 1" @click="prevPage">‹</button>
+                <button v-for="page in pageNumbers" :key="page" type="button"
+                  :class="['page-btn', { active: currentPage === page }]" @click="changePage(page)">
+                  {{ page }}
+                </button>
+                <button type="button" class="page-btn" :disabled="currentPage === totalPages"
+                  @click="nextPage">›</button>
               </div>
             </div>
           </div>
@@ -920,6 +926,8 @@ export default {
       activeTopTab: 'management',
       activeMachineTab: 'indoor',
       viewMode: 'card',
+      currentPage: 1,
+      pageSize: 2,
       expandedFilters: false,
       sidebarCollapsed: false,
       zoneEditMode: false,
@@ -1255,11 +1263,25 @@ export default {
     currentTableRows() {
       return this.activeMachineTab === 'indoor' ? this.filteredIndoorTableRows : this.filteredOutdoorTableRows
     },
+    pagedTableRows() {
+      const start = (this.currentPage - 1) * this.pageSize
+      return this.currentTableRows.slice(start, start + this.pageSize)
+    },
+    totalPages() {
+      return Math.max(1, Math.ceil(this.currentTableRows.length / this.pageSize))
+    },
+    pageNumbers() {
+      return Array.from({ length: this.totalPages }, (_, index) => index + 1)
+    },
     currentZoneCount() {
       return this.currentZoneGroups.reduce((sum, group) => sum + group.items.length, 0)
     },
     currentPaginationText() {
-      return this.activeMachineTab === 'indoor' ? '第1-20条/共22条' : '第1-4条/共4条'
+      const total = this.currentTableRows.length
+      if (!total) return '第0-0条/共0条'
+      const start = (this.currentPage - 1) * this.pageSize + 1
+      const end = Math.min(this.currentPage * this.pageSize, total)
+      return `第${start}-${end}条/共${total}条`
     },
     filteredIndoorCards() {
       if (!this.filters.keyword) return this.indoorCards
@@ -1308,6 +1330,16 @@ export default {
       return [
         { key: 'basic', label: '基本信息' }
       ]
+    }
+  },
+  watch: {
+    'filters.keyword'() {
+      this.resetPagination()
+    },
+    totalPages(newTotalPages) {
+      if (this.currentPage > newTotalPages) {
+        this.currentPage = newTotalPages
+      }
     }
   },
   methods: {
@@ -1423,6 +1455,19 @@ export default {
       this.selectedDevice = null
       this.editingName = false
     },
+    resetPagination() {
+      this.currentPage = 1
+    },
+    changePage(page) {
+      if (page < 1 || page > this.totalPages || page === this.currentPage) return
+      this.currentPage = page
+    },
+    prevPage() {
+      this.changePage(this.currentPage - 1)
+    },
+    nextPage() {
+      this.changePage(this.currentPage + 1)
+    },
     resetFilters() {
       this.filters.keyword = ''
       this.filters.system = []
@@ -1439,6 +1484,7 @@ export default {
       this.filters.pvType = ''
       this.system = []
       this.expandedFilters = false
+      this.resetPagination()
     },
     refreshData() {
       this.$message.info('正在刷新数据...')
@@ -1477,6 +1523,7 @@ export default {
           { id: 'ot3', code: 'ODU-00627-2-129', name: 'ODU-00627-2-129', status: '离线', address: '0000CC311178CCM...', system: '大多联', attachment: '--', model: '自动优先' },
           { id: 'ot4', code: 'ODU-00627-2-130', name: 'ODU-00627-2-130', status: '离线', address: '0000CC311178CCM...', system: '大多联', attachment: '--', model: '自动优先' }
         ]
+        this.resetPagination()
         this.$message.success('数据刷新成功')
       }, 500)
     },
@@ -1530,6 +1577,7 @@ export default {
     switchMachineTab(tab) {
       this.activeMachineTab = tab
       this.expandedFilters = false
+      this.resetPagination()
       if (tab === 'indoor') {
         this.viewMode = 'card'
         this.system = []
@@ -1800,21 +1848,7 @@ export default {
   display: none;
 }
 
-.collapse-btn {
-  position: relative;
-  width: 30px;
-  height: 30px;
-  background: #fff;
-  border: 1px solid #edf0f5;
-  margin-bottom: 20px;
-  margin-left: 20px;
-  border-radius: 0 4px 4px 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 10;
-  flex-shrink: 0;
-}
+
 
 .main-panel {
   flex: 1;
@@ -1895,8 +1929,18 @@ export default {
   border: 0;
   background: transparent;
   color: #6e7f9d;
-  font-size: 22px;
+  font-size: 24px;
   cursor: pointer;
+  position: absolute;
+  width: 30px;
+  height: 30px;
+  border-radius: 0 4px 4px 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+  left: 260px;
+  top: 100px;
 }
 
 .zone-tree,
@@ -2189,7 +2233,6 @@ export default {
   align-items: center;
   justify-content: space-between;
   padding: 0 14px;
-  border-right: 1px solid #9fb5dc;
   color: #17253f;
   font-size: 14px;
   cursor: pointer;
@@ -2369,13 +2412,7 @@ export default {
   line-height: 32px !important;
 }
 
-.search-icon {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #7b8ba8;
-  font-size: 18px;
-}
+
 
 .filter-box {
   display: grid;
@@ -2553,6 +2590,11 @@ export default {
   gap: 8px;
   color: #1e2f4d;
   font-size: 14px;
+
+  .check-all-checkbox {
+    width: 24px;
+    height: 24px
+  }
 }
 
 .actions,
@@ -2636,7 +2678,7 @@ export default {
   border: 1px solid #e4e9f2;
   border-radius: 4px;
   background: #fff;
-  padding: 12px;
+  padding: 12px 9px 10px;
   cursor: pointer;
   width: 100%;
   min-width: 0;
@@ -2704,11 +2746,18 @@ export default {
 }
 
 .rename-input {
-  width: 260px;
+  width: 220px;
+  font-size: 12px;
   height: 30px;
   border: 1px solid #dce4f1;
   border-radius: 4px;
   padding: 0 10px;
+  margin: 0 10px;
+}
+
+.rename-checkbox {
+  width: 26px;
+  height: 30px;
 }
 
 .outdoor-power {
@@ -2757,7 +2806,15 @@ export default {
   gap: 6px;
   color: #7f94bb;
   font-size: 13px;
+
+  img {
+    width: 16px;
+    height: 16px;
+    object-fit: contain;
+  }
 }
+
+
 
 .table-shell {
   border: 1px solid #eef2f7;
@@ -3475,7 +3532,7 @@ export default {
 }
 
 .batch-control-header .el-icon-close {
-  font-size: 20px;
+  font-size: 16px;
   color: rgba(20, 37, 63, 0.45);
   cursor: pointer;
 }
@@ -3680,5 +3737,620 @@ export default {
   font-size: 12px;
   color: rgba(20, 37, 63, 0.65);
   margin-bottom: 2px;
+}
+
+/* 页面视觉优化：仅调整样式，不修改页面内容与交互逻辑 */
+.device-page {
+  min-height: calc(100vh - 84px);
+  background: #f5f7fb;
+  color: #14253f;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", Arial, sans-serif;
+}
+
+.top-tabs {
+  height: 54px;
+  padding-left: 0;
+  background: #f7f7f8;
+  border-bottom: 1px solid #e5e8ef;
+}
+
+.top-tab {
+  min-width: 132px;
+  height: 54px;
+  border-right: 1px solid #e5e8ef;
+  background: transparent;
+  color: #273855;
+  font-size: 16px;
+  transition: color .2s ease, background .2s ease;
+
+  &:hover {
+    color: #0f62fe;
+  }
+
+  &.active {
+    background: #fff;
+    color: #14253f;
+    font-weight: 600;
+  }
+}
+
+.content-shell {
+  min-height: calc(100vh - 138px);
+  background: #fff;
+}
+
+.sidebar {
+  width: 338px;
+  padding: 0 12px 24px 20px;
+  border-right: 1px solid #e1e6ef;
+  background: #fff;
+}
+
+.sidebar.editing {
+  width: 338px;
+}
+
+.sidebar.collapsed {
+  width: 36px;
+}
+
+.content-shell.sidebar-collapsed .collapse-btn {
+  left: 20px;
+}
+
+.main-panel {
+  min-width: 0;
+  padding: 0 20px 28px 24px;
+  background: #fff;
+}
+
+.machine-switch {
+  height: 68px;
+  justify-content: flex-start;
+  gap: 40px;
+  padding: 0 0 0 0;
+  border-bottom: 0;
+}
+
+.machine-tab {
+  height: 68px;
+  padding: 0;
+  color: #14253f;
+  font-size: 14px;
+  line-height: 68px;
+
+  &.active {
+    color: #0f62fe;
+    font-weight: 700;
+  }
+
+  &.active::after {
+    bottom: 0;
+    height: 3px;
+    border-radius: 3px;
+    background: #0f62fe;
+  }
+}
+
+.zone-panel,
+.zone-edit-header {
+  border-top: 0;
+}
+
+.zone-header,
+.zone-edit-header {
+  padding: 26px 0 18px;
+  color: #14253f;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.zone-summary {
+  padding: 24px 8px 16px 0;
+  border-top: 1px solid #edf0f5;
+  color: #14253f;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.zone-tree,
+.zone-edit-tree {
+  max-height: calc(100vh - 390px);
+  padding-right: 0;
+}
+
+.zone-group-title {
+  height: 40px;
+  padding: 0 16px;
+  margin-right: 0;
+  border-radius: 4px;
+  color: #14253f;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.zone-group-title.active {
+  background: #e8f3ff;
+  color: #14253f;
+}
+
+.zone-group-main {
+  min-width: 0;
+  gap: 12px;
+}
+
+.caret {
+  color: #8b98aa;
+  font-size: 14px;
+}
+
+.zone-items {
+  padding-left: 28px;
+}
+
+.zone-item {
+  min-height: 34px;
+  padding: 8px 8px;
+  border-radius: 4px;
+  color: #51627d;
+  font-size: 14px;
+}
+
+.zone-item:hover,
+.zone-item.active {
+  background: #eef6ff;
+  color: #0f62fe;
+}
+
+.edit-zone-btn,
+.create-zone-btn {
+  display: block;
+  width: 116px;
+  height: 40px;
+  margin: 28px auto 0;
+  border-radius: 4px;
+  background: #e8f3ff;
+  color: #0f62fe;
+  font-size: 16px;
+}
+
+.create-zone-btn {
+  width: 150px;
+  background: #0f62fe;
+  color: #fff;
+}
+
+.collapse-btn {
+  left: 322px;
+  top: 168px;
+  width: 26px;
+  height: 42px;
+  border-radius: 0 18px 18px 0;
+  background: #fff;
+  border: 1px solid #e1e6ef;
+  border-left: 0;
+  color: #557099;
+  font-size: 22px;
+  box-shadow: 0 2px 8px rgba(20, 37, 63, .08);
+}
+
+.toolbar-header {
+  min-height: 68px;
+  justify-content: flex-end;
+}
+
+.toolbar-view-switch {
+  gap: 14px;
+}
+
+.view-btn {
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  color: #8da0bf;
+  font-size: 24px;
+
+  &.active {
+    color: #0f62fe;
+  }
+}
+
+.filter-panel {
+  gap: 24px;
+}
+
+.filter-row {
+  grid-template-columns: minmax(420px, 1.55fr) minmax(300px, 1fr) minmax(300px, 1fr) auto;
+  gap: 22px 20px;
+  align-items: center;
+}
+
+.expanded-row {
+  grid-template-columns: minmax(420px, 1.55fr) minmax(300px, 1fr) minmax(300px, 1fr) auto;
+}
+
+.filter-box {
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 14px;
+  min-width: 0;
+}
+
+.filter-label {
+  flex-shrink: 0;
+  color: #14253f;
+  font-size: 16px;
+  white-space: nowrap;
+}
+
+.search-combo,
+.fake-select {
+  height: 32px;
+  border-color: #a8b7d6;
+  border-radius: 4px;
+}
+
+.search-combo {
+  grid-template-columns: 136px minmax(0, 1fr) 44px;
+  min-width: 0;
+}
+
+.combo-select {
+  padding: 0 16px;
+  color: #14253f;
+  font-size: 16px;
+}
+
+.combo-input {
+  width: 100%;
+  min-width: 0;
+  height: 30px;
+  border-left: 1px solid #a8b7d6;
+  padding: 0 16px;
+  color: #14253f;
+  font-size: 16px;
+  box-sizing: border-box;
+}
+
+.combo-input::placeholder {
+  color: #7d8798;
+}
+
+.search-icon {
+  height: 30px;
+  color: #8a8f99;
+  font-size: 18px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.combo-dropdown,
+.suggestion-list {
+  border-color: #e3e8f2;
+  border-radius: 0 0 4px 4px;
+  box-shadow: 0 8px 20px rgba(20, 37, 63, .12);
+}
+
+.combo-dropdown {
+  width: 136px;
+}
+
+.suggestion-list {
+  left: 136px;
+  right: 44px;
+}
+
+.dropdown-item,
+.suggestion-item {
+  padding: 10px 14px;
+  font-size: 14px;
+}
+
+.expand-link {
+  min-width: 72px;
+  height: 46px;
+  color: #0f62fe;
+  font-size: 16px;
+  white-space: nowrap;
+}
+
+.filter-box ::v-deep .el-select,
+.filter-box ::v-deep .el-cascader,
+.search-combo ::v-deep .el-select,
+.filter-box ::v-deep .system-select,
+.filter-box ::v-deep .status-cascader,
+.filter-box ::v-deep .status-select,
+.filter-box ::v-deep .expanded-select,
+.filter-box ::v-deep .lock-status-select,
+.filter-box ::v-deep .contract-status-select,
+.filter-box ::v-deep .indoor-model-select,
+.filter-box ::v-deep .mute-mode-select,
+.filter-box ::v-deep .device-model-select,
+.filter-box ::v-deep .mode-priority-select,
+.filter-box ::v-deep .billing-status-select,
+.filter-box ::v-deep .pv-type-select,
+.search-combo ::v-deep .indoor-barcode-select,
+.search-combo ::v-deep .outdoor-barcode-select {
+  width: 100% !important;
+  height: 32px !important;
+}
+
+.filter-box ::v-deep .el-input,
+.filter-box ::v-deep .el-input__inner,
+.filter-box ::v-deep .el-cascader .el-input,
+.filter-box ::v-deep .el-cascader .el-input__inner,
+.search-combo ::v-deep .el-select .el-input,
+.search-combo ::v-deep .el-select .el-input__inner {
+  height: 32px !important;
+  line-height: 32px !important;
+}
+
+.filter-box ::v-deep .el-input__inner,
+.filter-box ::v-deep .el-cascader .el-input__inner {
+  border-color: #a8b7d6 !important;
+  color: #14253f;
+  font-size: 16px;
+}
+
+.filter-box ::v-deep .el-input__inner::placeholder,
+.filter-box ::v-deep .el-cascader .el-input__inner::placeholder {
+  color: #7d8798;
+}
+
+.filter-box ::v-deep .el-input__suffix,
+.filter-box ::v-deep .el-input__icon,
+.search-combo ::v-deep .el-input__suffix,
+.search-combo ::v-deep .el-input__icon {
+  height: 32px !important;
+  line-height: 32px !important;
+}
+
+.search-combo ::v-deep .el-select .el-input__inner {
+  border: 0 !important;
+  background: transparent !important;
+}
+
+.outdoor-filter-rows {
+  gap: 22px;
+}
+
+.outdoor-filter-rows .filter-row {
+  grid-template-columns: minmax(420px, 1.55fr) minmax(300px, 1fr) minmax(300px, 1fr) auto;
+  gap: 22px 20px;
+}
+
+.action-row,
+.edit-top-actions {
+  margin: 24px 0 20px;
+}
+
+.actions,
+.edit-mode-actions {
+  gap: 10px;
+  transform: none;
+}
+
+.action-btn {
+  min-width: 88px;
+  height: 40px;
+  padding: 0 18px;
+  border-radius: 4px;
+  font-size: 16px;
+  transition: background .2s ease, color .2s ease, box-shadow .2s ease;
+
+  &.secondary {
+    background: #e8f3ff;
+    color: #0f62fe;
+  }
+
+  &.secondary:hover {
+    background: #dcecff;
+  }
+
+  &.primary {
+    background: #0f62fe;
+    color: #fff;
+    box-shadow: 0 2px 6px rgba(15, 98, 254, .18);
+  }
+
+  &.primary:hover {
+    background: #0052e0;
+  }
+}
+
+.table-shell {
+  overflow: hidden;
+  border: 0;
+  border-radius: 0;
+  background: #fff;
+}
+
+.device-table {
+  min-width: 1120px;
+  table-layout: fixed;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+.device-table th,
+.device-table td {
+  height: 68px;
+  padding: 0 24px;
+  border-bottom: 1px solid #edf0f5;
+  color: #c6ccd6;
+  font-size: 14px;
+  font-weight: 400;
+  vertical-align: middle;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.device-table th {
+  height: 62px;
+  background: #f7f7f8;
+  color: #3e4a5f;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.device-table tbody tr {
+  transition: background .2s ease;
+}
+
+.device-table tbody tr:hover,
+.device-table tbody tr:nth-child(3) {
+  background: #f2f4f8;
+}
+
+.status-dot {
+  width: 12px;
+  height: 12px;
+  margin-right: 8px;
+  background: #d7dce4;
+  vertical-align: middle;
+}
+
+.operate-links a {
+  margin-right: 14px;
+  color: #0f62fe;
+  font-size: 16px;
+}
+
+.pagination-bar {
+  padding: 24px 0 0;
+  color: #14253f;
+  font-size: 14px;
+}
+
+.pagination-controls {
+  gap: 10px;
+}
+
+.page-btn {
+  width: 40px;
+  height: 40px;
+  border-color: #d7dce7;
+  color: #596b88;
+  font-size: 16px;
+}
+
+.page-btn.active {
+  border-color: #0f62fe;
+  color: #0f62fe;
+}
+
+.page-btn:disabled {
+  color: #c0c7d4;
+  cursor: not-allowed;
+  background: #f7f8fa;
+}
+
+.card-grid,
+.edit-card-grid {
+  gap: 16px;
+}
+
+.device-card {
+  min-height: 132px;
+  padding: 12px 9px 10px;
+  ;
+  border-color: #e5eaf3;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(20, 37, 63, .04);
+  transition: border .2s ease, box-shadow .2s ease, transform .2s ease;
+}
+
+.device-card:hover {
+  border-color: #b9cef5;
+  box-shadow: 0 8px 20px rgba(20, 37, 63, .08);
+  transform: translateY(-1px);
+}
+
+.device-card.active {
+  border-color: #0f62fe;
+  background: #f3f7ff;
+}
+
+.card-title {
+  color: #52647f;
+  font-size: 15px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.card-body {
+  background: #f7f9fc;
+}
+
+.card-tags,
+.card-extra,
+.card-metrics,
+.outdoor-power {
+  color: #7f8fa8;
+}
+
+.modal-card,
+::v-deep .el-dialog,
+::v-deep .el-drawer {
+  border-radius: 8px;
+}
+
+::v-deep .el-drawer__body {
+  background: #fff;
+}
+
+@media (max-width: 1600px) {
+
+  .filter-row,
+  .expanded-row,
+  .outdoor-filter-rows .filter-row {
+    grid-template-columns: minmax(360px, 1.2fr) minmax(260px, 1fr) minmax(260px, 1fr) auto;
+  }
+
+  .sidebar,
+  .sidebar.editing {
+    width: 300px;
+  }
+
+  .collapse-btn {
+    left: 284px;
+  }
+}
+
+@media (max-width: 1280px) {
+  .content-shell {
+    flex-direction: column;
+  }
+
+  .sidebar,
+  .sidebar.editing {
+    width: 100%;
+    padding-right: 20px;
+    border-right: 0;
+    border-bottom: 1px solid #edf0f5;
+  }
+
+  .collapse-btn {
+    display: none;
+  }
+
+  .main-panel {
+    padding: 0 16px 24px;
+  }
+
+  .filter-row,
+  .expanded-row,
+  .outdoor-filter-rows .filter-row {
+    grid-template-columns: 1fr;
+  }
+
+  .actions,
+  .edit-mode-actions {
+    flex-wrap: wrap;
+    justify-content: flex-end;
+  }
 }
 </style>
