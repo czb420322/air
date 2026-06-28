@@ -507,19 +507,13 @@
             </table>
 
             <div class="pagination-bar">
-              <span>{{ currentPaginationText }}</span>
-              <div class="pagination-controls">
-                <button type="button" class="page-btn" :disabled="currentPage === 1" @click="prevPage">
-                  ‹
-                </button>
-                <button v-for="page in pageNumbers" :key="page" type="button"
-                  :class="['page-btn', { active: currentPage === page }]" @click="changePage(page)">
-                  {{ page }}
-                </button>
-                <button type="button" class="page-btn" :disabled="currentPage === totalPages" @click="nextPage">
-                  ›
-                </button>
-              </div>
+              <el-pagination
+                background
+                layout="total, prev, pager, next"
+                :current-page.sync="currentPage"
+                :page-size="pageSize"
+                :total="currentTableRows.length"
+              />
             </div>
           </div>
         </main>
@@ -1841,27 +1835,11 @@ export default {
       const start = (this.currentPage - 1) * this.pageSize;
       return this.currentTableRows.slice(start, start + this.pageSize);
     },
-    totalPages() {
-      return Math.max(
-        1,
-        Math.ceil(this.currentTableRows.length / this.pageSize)
-      );
-    },
-    pageNumbers() {
-      return Array.from({ length: this.totalPages }, (_, index) => index + 1);
-    },
     currentZoneCount() {
       return this.currentZoneGroups.reduce(
         (sum, group) => sum + group.items.length,
         0
       );
-    },
-    currentPaginationText() {
-      const total = this.currentTableRows.length;
-      if (!total) return "第0-0条/共0条";
-      const start = (this.currentPage - 1) * this.pageSize + 1;
-      const end = Math.min(this.currentPage * this.pageSize, total);
-      return `第${start}-${end}条/共${total}条`;
     },
     filteredIndoorCards() {
       if (!this.filters.keyword) return this.indoorCards;
@@ -1922,9 +1900,10 @@ export default {
     "filters.keyword"() {
       this.resetPagination();
     },
-    totalPages(newTotalPages) {
-      if (this.currentPage > newTotalPages) {
-        this.currentPage = newTotalPages;
+    currentTableRows(rows) {
+      const totalPages = Math.max(1, Math.ceil(rows.length / this.pageSize));
+      if (this.currentPage > totalPages) {
+        this.currentPage = totalPages;
       }
     },
   },
@@ -2128,17 +2107,6 @@ export default {
     },
     resetPagination() {
       this.currentPage = 1;
-    },
-    changePage(page) {
-      if (page < 1 || page > this.totalPages || page === this.currentPage)
-        return;
-      this.currentPage = page;
-    },
-    prevPage() {
-      this.changePage(this.currentPage - 1);
-    },
-    nextPage() {
-      this.changePage(this.currentPage + 1);
     },
     resetFilters() {
       this.filters.keyword = "";
@@ -3822,29 +3790,8 @@ export default {
 .pagination-bar {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-end;
   padding: 16px 0 0;
-  color: #1d2a44;
-}
-
-.pagination-controls {
-  display: flex;
-  gap: 8px;
-}
-
-.page-btn {
-  width: 30px;
-  height: 30px;
-  border: 1px solid #d5dceb;
-  border-radius: 4px;
-  background: #fff;
-  color: #7082a3;
-  cursor: pointer;
-}
-
-.page-btn.active {
-  border-color: #2d63ff;
-  color: #2d63ff;
 }
 
 .modal-mask {
@@ -5181,35 +5128,6 @@ export default {
   margin-right: 14px;
   color: #0f62fe;
   font-size: 14px;
-}
-
-.pagination-bar {
-  padding: 24px 0 0;
-  color: #14253f;
-  font-size: 14px;
-}
-
-.pagination-controls {
-  gap: 10px;
-}
-
-.page-btn {
-  width: 40px;
-  height: 40px;
-  border-color: #d7dce7;
-  color: #596b88;
-  font-size: 16px;
-}
-
-.page-btn.active {
-  border-color: #0f62fe;
-  color: #0f62fe;
-}
-
-.page-btn:disabled {
-  color: #c0c7d4;
-  cursor: not-allowed;
-  background: #f7f8fa;
 }
 
 .card-grid,
