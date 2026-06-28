@@ -9,7 +9,10 @@
 
     <template v-if="activeTopTab === 'management'">
       <div :class="['content-shell', { 'sidebar-collapsed': sidebarCollapsed }]">
-        <aside :class="['sidebar', { editing: zoneEditMode, collapsed: sidebarCollapsed }]">
+        <aside :class="[
+          'sidebar',
+          { editing: zoneEditMode, collapsed: sidebarCollapsed },
+        ]">
           <div class="machine-switch">
             <button v-for="tab in machineTabs" :key="tab.key" type="button"
               :class="['machine-tab', { active: activeMachineTab === tab.key }]" @click="switchMachineTab(tab.key)">
@@ -21,12 +24,16 @@
           <template v-if="zoneEditMode && activeMachineTab === 'indoor'">
             <div class="zone-edit-header">
               <span class="zone-edit-title">设备分区</span>
-              <button type="button" class="more-link" @click.stop="toggleMoreMenu">更多操作</button>
+              <button type="button" class="more-link" @click.stop="toggleMoreMenu">
+                更多操作
+              </button>
               <div v-if="showMoreMenu" class="dropdown-menu more-menu">
                 <button type="button" @click="openImportDialog">导入</button>
                 <button type="button">导出</button>
                 <button type="button" @click="openGuideDialog">操作指引</button>
-                <button type="button" @click="openSmartNamingDialog">智能命名</button>
+                <button type="button" @click="openSmartNamingDialog">
+                  智能命名
+                </button>
               </div>
             </div>
 
@@ -34,12 +41,20 @@
               <el-tree :data="zoneTreeData" :props="{ children: 'children', label: 'label' }" :highlight-current="true"
                 :expand-on-click-node="false" @node-click="handleZoneNodeClick">
                 <span slot-scope="{ node, data }" class="custom-tree-node">
-                  <span :class="['editable-zone-name', { active: selectedEditZone === data.id }]">{{ node.label
-                    }}</span>
+                  <span :class="[
+                    'editable-zone-name',
+                    { active: selectedEditZone === data.id },
+                  ]">{{ node.label }}</span>
                   <span class="editable-zone-actions">
-                    <button type="button" class="icon-btn" @click.stop="toggleNodeMenu(data.id)">+</button>
-                    <button type="button" class="icon-btn" @click.stop>✎</button>
-                    <button type="button" class="icon-btn" @click.stop>🗑</button>
+                    <button type="button" class="icon-btn" @click.stop="toggleNodeMenu(data.id)">
+                      +
+                    </button>
+                    <button type="button" class="icon-btn" @click.stop>
+                      ✎
+                    </button>
+                    <button type="button" class="icon-btn" @click.stop>
+                      🗑
+                    </button>
                   </span>
                 </span>
               </el-tree>
@@ -47,7 +62,9 @@
 
             <div v-if="!editableZoneGroups.length" class="empty-zone-tip">
               <div>暂无分区</div>
-              <button type="button" class="text-link" @click="openImportDialog">请 添加/导入</button>
+              <button type="button" class="text-link" @click="openImportDialog">
+                请 添加/导入
+              </button>
             </div>
 
             <button type="button" class="create-zone-btn" @click="createTopLevelZone">
@@ -64,26 +81,20 @@
               </div>
 
               <div class="zone-tree">
-                <div v-for="group in currentZoneGroups" :key="group.id" class="zone-group">
-                  <div :class="['zone-group-title', { active: selectedZone === group.id }]"
-                    @click="selectZone(group.id)">
-                    <div class="zone-group-main">
-                      <span class="caret">{{ group.expanded ? '▼' : '▶' }}</span>
-                      <input v-if="showBatchControl" type="checkbox" :checked="isGroupSelected(group)"
-                        @click.stop="toggleGroupSelect(group)" />
-                      <span>{{ group.name }}（{{ group.items.length }}）</span>
-                    </div>
-                  </div>
-
-                  <div v-if="group.expanded" class="zone-items">
-                    <div v-for="item in group.items" :key="item.id"
-                      :class="['zone-item', { active: selectedZone === item.id }]" @click="selectZone(item.id)">
-                      <input v-if="showBatchControl" type="checkbox" :checked="isZoneItemSelected(group, item)"
-                        @click.stop="toggleZoneItemSelect(group, item)" />
-                      <span>{{ item.label }}</span>
-                    </div>
-                  </div>
-                </div>
+                <el-tree :data="currentZoneTreeData" :props="zoneTreeProps" node-key="id" :highlight-current="true"
+                  :expand-on-click-node="false" :default-expanded-keys="defaultExpandedZoneKeys"
+                  @node-click="handleCurrentZoneNodeClick" @node-expand="handleCurrentZoneNodeExpand"
+                  @node-collapse="handleCurrentZoneNodeCollapse">
+                  <span slot-scope="{ node, data }" :class="[
+                    'zone-tree-node',
+                    data.type,
+                    { active: selectedZone === data.id },
+                  ]">
+                    <input v-if="showBatchControl" type="checkbox" :checked="isCurrentZoneNodeSelected(data)"
+                      @click.stop="toggleCurrentZoneNodeSelect(data)" />
+                    <span class="zone-tree-label">{{ node.label }}</span>
+                  </span>
+                </el-tree>
               </div>
               <button v-if="activeMachineTab === 'indoor'" type="button" class="edit-zone-btn"
                 @click="enterZoneEditMode">
@@ -94,7 +105,7 @@
         </aside>
 
         <button type="button" class="collapse-btn" @click="toggleSidebar">
-          {{ sidebarCollapsed ? '»' : '«' }}
+          {{ sidebarCollapsed ? "»" : "«" }}
         </button>
 
         <main class="main-panel">
@@ -144,10 +155,15 @@
                   </el-option>
                 </el-select>
                 <!-- 其他字段使用输入框 -->
-                <input v-if="currentSearchField !== '室内机条码' && currentSearchField !== '室外机条码'" v-model="filters.keyword"
-                  type="text" class="combo-input" :placeholder="`请输入${currentSearchField}`" @input="handleSearchInput">
-                <i v-if="currentSearchField !== '室内机条码' && currentSearchField !== '室外机条码'"
-                  class="el-icon-search search-icon" @click="handleSearch"></i>
+                <input v-if="
+                  currentSearchField !== '室内机条码' &&
+                  currentSearchField !== '室外机条码'
+                " v-model="filters.keyword" type="text" class="combo-input" :placeholder="`请输入${currentSearchField}`"
+                  @input="handleSearchInput" />
+                <i v-if="
+                  currentSearchField !== '室内机条码' &&
+                  currentSearchField !== '室外机条码'
+                " class="el-icon-search search-icon" @click="handleSearch"></i>
 
                 <div v-if="showSuggestions && suggestions.length > 0" class="suggestion-list">
                   <div v-for="(item, index) in suggestions" :key="index" class="suggestion-item"
@@ -158,7 +174,9 @@
               </div>
 
               <div class="filter-box">
-                <span class="filter-label">{{ activeMachineTab === 'indoor' ? '所属系统' : '所属系统' }}</span>
+                <span class="filter-label">{{
+                  activeMachineTab === "indoor" ? "所属系统" : "所属系统"
+                  }}</span>
 
                 <el-select v-model="system" multiple collapse-tags size="small" class="system-select" placeholder="请选择">
                   <el-option v-for="item in systemOptions" :key="item.value" :label="item.label" :value="item.value">
@@ -167,7 +185,9 @@
               </div>
 
               <div class="filter-box">
-                <span class="filter-label">{{ activeMachineTab === 'indoor' ? '实时状态' : '运行状态' }}</span>
+                <span class="filter-label">{{
+                  activeMachineTab === "indoor" ? "实时状态" : "运行状态"
+                  }}</span>
                 <el-cascader v-if="activeMachineTab === 'indoor'" :options="indoorOptions" :props="props"
                   @change="handleCascaderChange" size="small" class="status-cascader" collapse-tags placeholder="请选择"
                   clearable></el-cascader>
@@ -179,8 +199,9 @@
               </div>
 
               <button type="button" class="expand-link" @click="expandedFilters = !expandedFilters">
-                {{ expandedFilters ? '收起' : '展开' }}
-                <i :class="expandedFilters ? 'el-icon-arrow-up' : 'el-icon-arrow-down'"></i>
+                {{ expandedFilters ? "收起" : "展开" }}
+                <i :class="expandedFilters ? 'el-icon-arrow-up' : 'el-icon-arrow-down'
+                  "></i>
               </button>
             </div>
 
@@ -283,14 +304,18 @@
 
           <div v-if="zoneEditMode" class="edit-top-actions">
             <label class="check-all">
-              <input class="check-all-checkbox" type="checkbox">
+              <input class="check-all-checkbox" type="checkbox" />
               全选（0/22）
             </label>
 
             <div class="edit-mode-actions">
-              <button type="button" class="action-btn secondary" @click="refreshData">刷新</button>
+              <button type="button" class="action-btn secondary" @click="refreshData">
+                刷新
+              </button>
               <button type="button" class="action-btn primary">批量删除</button>
-              <button type="button" class="action-btn secondary">批量重命名</button>
+              <button type="button" class="action-btn secondary">
+                批量重命名
+              </button>
             </div>
           </div>
 
@@ -301,14 +326,19 @@
                 class="action-btn secondary" @click.stop="openSortDialog">
                 排序配置
               </button>
-              <button type="button" class="action-btn secondary" @click="resetFilters">重置筛选</button>
-              <button type="button" class="action-btn secondary" @click="refreshData">刷新</button>
+              <button type="button" class="action-btn secondary" @click="resetFilters">
+                重置筛选
+              </button>
+              <button type="button" class="action-btn secondary" @click="refreshData">
+                刷新
+              </button>
               <button v-if="activeMachineTab === 'outdoor'" type="button" placeholder="请选择" class="action-btn primary"
                 @click="openBatchDelete">
                 批量删除
               </button>
-              <button type="button" class="action-btn primary" @click="openBatchControl">批量控制</button>
-
+              <button type="button" class="action-btn primary" @click="openBatchControl">
+                批量控制
+              </button>
             </div>
           </div>
 
@@ -322,10 +352,10 @@
               <div v-for="item in indoorEditCards" :key="item.id" class="device-card edit-card">
                 <div class="card-title-row with-check">
                   <div class="card-title-wrap">
-                    <img src="https://static-btri.midea.com/mfs/2676/1723456813979.png" alt="indoor-icon">
+                    <img src="https://static-btri.midea.com/mfs/2676/1723456813979.png" alt="indoor-icon" />
                   </div>
-                  <input :value="item.name" class="rename-input">
-                  <input type="checkbox" class="rename-checkbox">
+                  <input :value="item.name" class="rename-input" />
+                  <input type="checkbox" class="rename-checkbox" />
                 </div>
 
                 <div class="card-body">
@@ -352,8 +382,9 @@
           </div>
 
           <div v-else-if="viewMode === 'card'" class="card-grid">
-            <div v-for="item in currentCards" :key="item.id" class="device-card"
-              :class="{ active: selectedDevice && selectedDevice.id === item.id }" @click="openDeviceDetail(item)">
+            <div v-for="item in currentCards" :key="item.id" class="device-card" :class="{
+              active: selectedDevice && selectedDevice.id === item.id,
+            }" @click="openDeviceDetail(item)">
               <div class="card-title-row">
                 <div class="card-title-wrap">
                   <span class="card-icon">
@@ -403,13 +434,31 @@
             <table class="device-table">
               <thead>
                 <tr>
-                  <th>{{ activeMachineTab === 'indoor' ? '室内机编号' : '室外机编号' }}</th>
+                  <th>
+                    {{
+                      activeMachineTab === "indoor"
+                        ? "室内机编号"
+                        : "室外机编号"
+                    }}
+                  </th>
                   <th>设备名称</th>
                   <th>运行状态</th>
-                  <th>{{ activeMachineTab === 'indoor' ? '设备地址' : '所属系统' }}</th>
-                  <th>{{ activeMachineTab === 'indoor' ? '系统' : '机型' }}</th>
-                  <th>{{ activeMachineTab === 'indoor' ? '附属舰' : '静音模式' }}</th>
-                  <th>{{ activeMachineTab === 'indoor' ? '内机型号' : '模式优先设置' }}</th>
+                  <th>
+                    {{
+                      activeMachineTab === "indoor" ? "设备地址" : "所属系统"
+                    }}
+                  </th>
+                  <th>{{ activeMachineTab === "indoor" ? "系统" : "机型" }}</th>
+                  <th>
+                    {{ activeMachineTab === "indoor" ? "附属舰" : "静音模式" }}
+                  </th>
+                  <th>
+                    {{
+                      activeMachineTab === "indoor"
+                        ? "内机型号"
+                        : "模式优先设置"
+                    }}
+                  </th>
                   <th v-if="activeMachineTab === 'indoor'">模式</th>
                   <th>操作</th>
                 </tr>
@@ -439,28 +488,40 @@
             <div class="pagination-bar">
               <span>{{ currentPaginationText }}</span>
               <div class="pagination-controls">
-                <button type="button" class="page-btn" :disabled="currentPage === 1" @click="prevPage">‹</button>
+                <button type="button" class="page-btn" :disabled="currentPage === 1" @click="prevPage">
+                  ‹
+                </button>
                 <button v-for="page in pageNumbers" :key="page" type="button"
                   :class="['page-btn', { active: currentPage === page }]" @click="changePage(page)">
                   {{ page }}
                 </button>
-                <button type="button" class="page-btn" :disabled="currentPage === totalPages"
-                  @click="nextPage">›</button>
+                <button type="button" class="page-btn" :disabled="currentPage === totalPages" @click="nextPage">
+                  ›
+                </button>
               </div>
             </div>
           </div>
         </main>
       </div>
 
-      <div v-if="showImportDialog || showGuideDialog || showSmartNamingDialog || showSortDialog" class="modal-mask"
-        @click="closeAllDialogs">
+      <div v-if="
+        showImportDialog ||
+        showGuideDialog ||
+        showSmartNamingDialog ||
+        showSortDialog
+      " class="modal-mask" @click="closeAllDialogs">
         <div v-if="showImportDialog" class="modal-card import-modal" @click.stop>
           <div class="modal-header">
             <span>导入</span>
-            <button type="button" class="close-btn" @click="showImportDialog = false">×</button>
+            <button type="button" class="close-btn" @click="showImportDialog = false">
+              ×
+            </button>
           </div>
           <div class="modal-content">
-            <p>请按照模版要求导入数据，若已创建请忽略 <a href="javascript:void(0)">批量导入分区模版.xlsx</a></p>
+            <p>
+              请按照模版要求导入数据，若已创建请忽略
+              <a href="javascript:void(0)">批量导入分区模版.xlsx</a>
+            </p>
             <div class="upload-row">
               <span class="required">*</span>
               <span>上传分区数据：</span>
@@ -472,13 +533,18 @@
         <div v-if="showGuideDialog" class="modal-card guide-modal" @click.stop>
           <div class="modal-header">
             <span>操作指引</span>
-            <button type="button" class="close-btn" @click="showGuideDialog = false">×</button>
+            <button type="button" class="close-btn" @click="showGuideDialog = false">
+              ×
+            </button>
           </div>
           <div class="modal-content guide-content">
             <div class="guide-section">
               <div class="guide-title">自动分区：</div>
               <p>点击导入按钮，本地导入分区数据即可分区。</p>
-              <p>若本地无分区数据，可点击蓝色链接下载模版 <a href="javascript:void(0)">批量导入分区模版.xlsx</a></p>
+              <p>
+                若本地无分区数据，可点击蓝色链接下载模版
+                <a href="javascript:void(0)">批量导入分区模版.xlsx</a>
+              </p>
             </div>
 
             <div class="guide-section">
@@ -495,7 +561,9 @@
 
             <div class="guide-section">
               <div class="guide-title">设备拖动：</div>
-              <p>右侧分区列表下的设备，可以通过长按拖动的形式，更改设备所属的分区。</p>
+              <p>
+                右侧分区列表下的设备，可以通过长按拖动的形式，更改设备所属的分区。
+              </p>
             </div>
           </div>
         </div>
@@ -503,14 +571,22 @@
         <div v-if="showSmartNamingDialog" class="modal-card confirm-modal" @click.stop>
           <div class="modal-header">
             <span>提示</span>
-            <button type="button" class="close-btn" @click="showSmartNamingDialog = false">×</button>
+            <button type="button" class="close-btn" @click="showSmartNamingDialog = false">
+              ×
+            </button>
           </div>
           <div class="modal-content">
             <p>是否将未命名的设备按分区名称进行智能命名？</p>
-            <p class="sub-tip">例如位于“2栋”-“3层”-“大厅”的内机将被自动依次命名为“2栋-3层-大厅1”、“2栋-3层-大厅2”</p>
+            <p class="sub-tip">
+              例如位于“2栋”-“3层”-“大厅”的内机将被自动依次命名为“2栋-3层-大厅1”、“2栋-3层-大厅2”
+            </p>
             <div class="confirm-actions">
-              <button type="button" class="ghost-btn" @click="showSmartNamingDialog = false">取消</button>
-              <button type="button" class="solid-btn" @click="confirmSmartNaming">确定</button>
+              <button type="button" class="ghost-btn" @click="showSmartNamingDialog = false">
+                取消
+              </button>
+              <button type="button" class="solid-btn" @click="confirmSmartNaming">
+                确定
+              </button>
             </div>
           </div>
         </div>
@@ -518,7 +594,9 @@
         <div v-if="showSortDialog" class="modal-card sort-modal" @click.stop>
           <div class="modal-header">
             <span>排序配置</span>
-            <button type="button" class="close-btn" @click="showSortDialog = false">×</button>
+            <button type="button" class="close-btn" @click="showSortDialog = false">
+              ×
+            </button>
           </div>
           <div class="modal-content">
             <div class="sort-condition-list">
@@ -531,7 +609,10 @@
                 </el-select>
                 <span class="sort-desc">{{ getSortDesc(item.field) }}</span>
                 <span class="sort-direction" @click="toggleSortDirection(index)">
-                  <i :class="item.direction === 'asc' ? 'el-icon-arrow-up' : 'el-icon-arrow-down'"></i>
+                  <i :class="item.direction === 'asc'
+                      ? 'el-icon-arrow-up'
+                      : 'el-icon-arrow-down'
+                    "></i>
                 </span>
                 <i class="el-icon-delete sort-delete" @click="removeSortCondition(index)"></i>
               </div>
@@ -541,12 +622,15 @@
               添加排序条件
             </button>
             <div class="sort-actions">
-              <button type="button" class="ghost-btn" @click="showSortDialog = false">取消</button>
-              <button type="button" class="solid-btn" @click="confirmSort">确定</button>
+              <button type="button" class="ghost-btn" @click="showSortDialog = false">
+                取消
+              </button>
+              <button type="button" class="solid-btn" @click="confirmSort">
+                确定
+              </button>
             </div>
           </div>
         </div>
-
       </div>
 
       <el-drawer :visible="showDeviceDetail" :direction="'rtl'" :size="'500px'" @close="closeDeviceDetail"
@@ -554,19 +638,27 @@
         <div v-if="selectedDevice">
           <div class="drawer-header">
             <div class="header-left">
-              <img
-                :src="activeMachineTab === 'indoor' ? 'https://static-btri.midea.com/mfs/2676/1723456813979.png' : 'data:image/png;base64,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'"
-                :alt="activeMachineTab === 'indoor' ? 'indoor-icon' : 'outdoor-icon'" />
-              <span class="device-name">{{ editingName ? editNameValue : selectedDevice.name }}</span>
+              <img :src="activeMachineTab === 'indoor'
+                  ? 'https://static-btri.midea.com/mfs/2676/1723456813979.png'
+                  : 'data:image/png;base64,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'
+                " :alt="activeMachineTab === 'indoor' ? 'indoor-icon' : 'outdoor-icon'
+                  " />
+              <span class="device-name">{{
+                editingName ? editNameValue : selectedDevice.name
+                }}</span>
             </div>
-            <button v-if="!editingName" type="button" class="edit-name-btn" @click="openEditName">编辑名称</button>
+            <button v-if="!editingName" type="button" class="edit-name-btn" @click="openEditName">
+              编辑名称
+            </button>
           </div>
 
           <div v-if="!editingName" class="detail-tabs">
-            <div v-for="tab in detailTabs" :key="tab.key"
-              :class="['detail-tab', { 'tab-active': activeDetailTab === tab.key }]" @click="activeDetailTab = tab.key">
-              {{
-                tab.label }}</div>
+            <div v-for="tab in detailTabs" :key="tab.key" :class="[
+              'detail-tab',
+              { 'tab-active': activeDetailTab === tab.key },
+            ]" @click="activeDetailTab = tab.key">
+              {{ tab.label }}
+            </div>
           </div>
 
           <div v-if="!editingName" class="detail-content">
@@ -574,126 +666,186 @@
               <template v-if="activeMachineTab === 'indoor'">
                 <div class="detail-row">
                   <span class="detail-label">所属分区</span>
-                  <span class="detail-value">{{ selectedDevice.zone || '未分区' }}</span>
+                  <span class="detail-value">{{
+                    selectedDevice.zone || "未分区"
+                    }}</span>
                 </div>
                 <div class="detail-row">
                   <span class="detail-label">所属室外机名称</span>
-                  <span class="detail-value">{{ selectedDevice.outdoorName || '-' }}</span>
+                  <span class="detail-value">{{
+                    selectedDevice.outdoorName || "-"
+                    }}</span>
                 </div>
                 <div class="detail-row">
                   <span class="detail-label">所属室外机条码</span>
-                  <span class="detail-value">{{ selectedDevice.outdoorBarcode || '-' }}</span>
+                  <span class="detail-value">{{
+                    selectedDevice.outdoorBarcode || "-"
+                    }}</span>
                 </div>
                 <div class="detail-row">
                   <span class="detail-label">网关条码</span>
-                  <span class="detail-value">{{ selectedDevice.gatewayBarcode || '-' }}</span>
+                  <span class="detail-value">{{
+                    selectedDevice.gatewayBarcode || "-"
+                    }}</span>
                 </div>
                 <div class="detail-row">
                   <span class="detail-label">室内机条码</span>
-                  <span class="detail-value">{{ selectedDevice.indoorBarcode || '-' }}</span>
+                  <span class="detail-value">{{
+                    selectedDevice.indoorBarcode || "-"
+                    }}</span>
                 </div>
                 <div class="detail-row">
                   <span class="detail-label">室内机编号</span>
-                  <span class="detail-value">{{ selectedDevice.indoorCode || '-' }}</span>
+                  <span class="detail-value">{{
+                    selectedDevice.indoorCode || "-"
+                    }}</span>
                 </div>
                 <div class="detail-row">
                   <span class="detail-label">室内机地址码</span>
-                  <span class="detail-value">{{ selectedDevice.addressCode || '-' }}</span>
+                  <span class="detail-value">{{
+                    selectedDevice.addressCode || "-"
+                    }}</span>
                 </div>
                 <div class="detail-row">
                   <span class="detail-label">室内机机型</span>
-                  <span class="detail-value">{{ selectedDevice.model || '-' }}</span>
+                  <span class="detail-value">{{
+                    selectedDevice.model || "-"
+                    }}</span>
                 </div>
                 <div class="detail-row">
                   <span class="detail-label">室内机类型</span>
-                  <span class="detail-value">{{ selectedDevice.type || '-' }}</span>
+                  <span class="detail-value">{{
+                    selectedDevice.type || "-"
+                    }}</span>
                 </div>
                 <div class="detail-row">
                   <span class="detail-label">线控器组号</span>
-                  <span class="detail-value">{{ selectedDevice.controllerGroup || '-' }}</span>
+                  <span class="detail-value">{{
+                    selectedDevice.controllerGroup || "-"
+                    }}</span>
                 </div>
                 <div class="detail-row">
                   <span class="detail-label">注册时间</span>
-                  <span class="detail-value">{{ selectedDevice.registerTime || '-' }}</span>
+                  <span class="detail-value">{{
+                    selectedDevice.registerTime || "-"
+                    }}</span>
                 </div>
               </template>
               <template v-else>
                 <div class="detail-row">
                   <span class="detail-label">室外机条码</span>
-                  <span class="detail-value">{{ selectedDevice.outdoorBarcode || '-' }}</span>
+                  <span class="detail-value">{{
+                    selectedDevice.outdoorBarcode || "-"
+                    }}</span>
                 </div>
                 <div class="detail-row">
                   <span class="detail-label">网关条码</span>
-                  <span class="detail-value">{{ selectedDevice.gatewayBarcode || '-' }}</span>
+                  <span class="detail-value">{{
+                    selectedDevice.gatewayBarcode || "-"
+                    }}</span>
                 </div>
                 <div class="detail-row">
                   <span class="detail-label">室外机编号</span>
-                  <span class="detail-value">{{ selectedDevice.outdoorCode || '-' }}</span>
+                  <span class="detail-value">{{
+                    selectedDevice.outdoorCode || "-"
+                    }}</span>
                 </div>
                 <div class="detail-row">
                   <span class="detail-label">室外机地址码</span>
-                  <span class="detail-value">{{ selectedDevice.addressCode || '-' }}</span>
+                  <span class="detail-value">{{
+                    selectedDevice.addressCode || "-"
+                    }}</span>
                 </div>
                 <div class="detail-row">
                   <span class="detail-label">设置内机台数</span>
-                  <span class="detail-value">{{ selectedDevice.setIndoorCount || '--' }}</span>
+                  <span class="detail-value">{{
+                    selectedDevice.setIndoorCount || "--"
+                    }}</span>
                 </div>
                 <div class="detail-row">
                   <span class="detail-label">在线内机台数</span>
-                  <span class="detail-value">{{ selectedDevice.onlineIndoorCount || '0' }}</span>
+                  <span class="detail-value">{{
+                    selectedDevice.onlineIndoorCount || "0"
+                    }}</span>
                 </div>
                 <div class="detail-row">
                   <span class="detail-label">内机开机台数</span>
-                  <span class="detail-value">{{ selectedDevice.workingIndoorCount || '0' }}</span>
+                  <span class="detail-value">{{
+                    selectedDevice.workingIndoorCount || "0"
+                    }}</span>
                 </div>
                 <div class="detail-row">
                   <span class="detail-label">注册时间</span>
-                  <span class="detail-value">{{ selectedDevice.registerTime || '-' }}</span>
+                  <span class="detail-value">{{
+                    selectedDevice.registerTime || "-"
+                    }}</span>
                 </div>
                 <div class="detail-row">
                   <span class="detail-label">网络地址</span>
-                  <span class="detail-value">{{ selectedDevice.networkAddress || '-' }}</span>
+                  <span class="detail-value">{{
+                    selectedDevice.networkAddress || "-"
+                    }}</span>
                 </div>
                 <div class="detail-row">
                   <span class="detail-label">电表接入状态</span>
-                  <span class="detail-value">{{ selectedDevice.meterStatus || '已接入电表' }}</span>
+                  <span class="detail-value">{{
+                    selectedDevice.meterStatus || "已接入电表"
+                    }}</span>
                 </div>
                 <div class="detail-row">
                   <span class="detail-label">电表归属类型</span>
-                  <span class="detail-value">{{ selectedDevice.meterType || '第三方电表' }}</span>
+                  <span class="detail-value">{{
+                    selectedDevice.meterType || "第三方电表"
+                    }}</span>
                 </div>
                 <div class="detail-row">
                   <span class="detail-label">交流电表读数(kWh)</span>
-                  <span class="detail-value">{{ selectedDevice.acMeterReading || '-' }}</span>
+                  <span class="detail-value">{{
+                    selectedDevice.acMeterReading || "-"
+                    }}</span>
                 </div>
                 <div class="detail-row">
                   <span class="detail-label">光伏类型</span>
-                  <span class="detail-value">{{ selectedDevice.pvType || '无' }}</span>
+                  <span class="detail-value">{{
+                    selectedDevice.pvType || "无"
+                    }}</span>
                 </div>
                 <div class="detail-row">
                   <span class="detail-label">直流电表读数(kWh)</span>
-                  <span class="detail-value">{{ selectedDevice.dcMeterReading || '-' }}</span>
+                  <span class="detail-value">{{
+                    selectedDevice.dcMeterReading || "-"
+                    }}</span>
                 </div>
               </template>
             </template>
 
-            <template v-if="activeDetailTab === 'related' && activeMachineTab === 'outdoor'">
+            <template v-if="
+              activeDetailTab === 'related' && activeMachineTab === 'outdoor'
+            ">
               <div class="related-header">
                 <span class="related-title">室外机名称: {{ selectedDevice.name }}</span>
               </div>
               <div class="related-section">
                 <div class="section-header" @click="toggleRelatedSection">
-                  <i :class="['el-icon', relatedSectionExpanded ? 'el-icon-arrow-down' : 'el-icon-arrow-right']"></i>
+                  <i :class="[
+                    'el-icon',
+                    relatedSectionExpanded
+                      ? 'el-icon-arrow-down'
+                      : 'el-icon-arrow-right',
+                  ]"></i>
                   <span>未分区({{ relatedIndoors.length }}台设备)</span>
                 </div>
                 <div v-if="relatedSectionExpanded" class="related-list">
                   <div v-for="indoor in relatedIndoors" :key="indoor.id" class="related-item">
                     <span class="item-name">{{ indoor.name }}</span>
-                    <span class="item-temp">{{ indoor.temperature || '--' }}°C</span>
-                    <span :class="['item-status', indoor.status === 'online' ? 'online' : 'offline']">
-                      {{ indoor.status === 'online' ? '离' : '在线' }}线
+                    <span class="item-temp">{{ indoor.temperature || "--" }}°C</span>
+                    <span :class="[
+                      'item-status',
+                      indoor.status === 'online' ? 'online' : 'offline',
+                    ]">
+                      {{ indoor.status === "online" ? "离" : "在线" }}线
                     </span>
-                    <span class="item-detail">{{ indoor.detail || '--' }}</span>
+                    <span class="item-detail">{{ indoor.detail || "--" }}</span>
                   </div>
                 </div>
               </div>
@@ -704,8 +856,12 @@
             <input v-model="editNameValue" class="name-input" placeholder="请输入设备名称" />
             <div class="input-actions">
               <span class="char-count">{{ editNameValue.length }}/12</span>
-              <button type="button" class="cancel-btn" @click="cancelEditName">取消</button>
-              <button type="button" class="confirm-btn" @click="confirmEditName">确认</button>
+              <button type="button" class="cancel-btn" @click="cancelEditName">
+                取消
+              </button>
+              <button type="button" class="confirm-btn" @click="confirmEditName">
+                确认
+              </button>
             </div>
             <div class="smart-naming">
               <div class="smart-title">快捷命名</div>
@@ -731,10 +887,12 @@
         </div>
 
         <div class="batch-tabs">
-          <div v-for="tab in batchTabs" :key="tab.key"
-            :class="['batch-tab', { 'batch-tab-active': activeBatchTab === tab.key }]"
-            @click="activeBatchTab = tab.key">{{
-              tab.label }}</div>
+          <div v-for="tab in batchTabs" :key="tab.key" :class="[
+            'batch-tab',
+            { 'batch-tab-active': activeBatchTab === tab.key },
+          ]" @click="activeBatchTab = tab.key">
+            {{ tab.label }}
+          </div>
         </div>
 
         <div class="batch-content">
@@ -742,26 +900,56 @@
             <div class="control-section">
               <div class="section-title">设备开关</div>
               <div class="control-buttons">
-                <button :class="['control-btn', { active: batchControlData.power === 'off' }]"
-                  @click="batchControlData.power = 'off'">关机</button>
-                <button :class="['control-btn', { active: batchControlData.power === 'on' }]"
-                  @click="batchControlData.power = 'on'">开机</button>
+                <button :class="[
+                  'control-btn',
+                  { active: batchControlData.power === 'off' },
+                ]" @click="batchControlData.power = 'off'">
+                  关机
+                </button>
+                <button :class="[
+                  'control-btn',
+                  { active: batchControlData.power === 'on' },
+                ]" @click="batchControlData.power = 'on'">
+                  开机
+                </button>
               </div>
             </div>
 
             <div class="control-section">
-              <div class="section-title">设定模式 <span class="tip">(不支持全热交换器)</span></div>
+              <div class="section-title">
+                设定模式 <span class="tip">(不支持全热交换器)</span>
+              </div>
               <div class="control-buttons">
-                <button :class="['control-btn', { active: batchControlData.mode === 'none' }]"
-                  @click="batchControlData.mode = 'none'">不设定</button>
-                <button :class="['control-btn', { active: batchControlData.mode === 'fan' }]"
-                  @click="batchControlData.mode = 'fan'">送风</button>
-                <button :class="['control-btn', { active: batchControlData.mode === 'cool' }]"
-                  @click="batchControlData.mode = 'cool'">制冷</button>
-                <button :class="['control-btn', { active: batchControlData.mode === 'heat' }]"
-                  @click="batchControlData.mode = 'heat'">制热</button>
-                <button :class="['control-btn', { active: batchControlData.mode === 'dehumidify' }]"
-                  @click="batchControlData.mode = 'dehumidify'">除湿</button>
+                <button :class="[
+                  'control-btn',
+                  { active: batchControlData.mode === 'none' },
+                ]" @click="batchControlData.mode = 'none'">
+                  不设定
+                </button>
+                <button :class="[
+                  'control-btn',
+                  { active: batchControlData.mode === 'fan' },
+                ]" @click="batchControlData.mode = 'fan'">
+                  送风
+                </button>
+                <button :class="[
+                  'control-btn',
+                  { active: batchControlData.mode === 'cool' },
+                ]" @click="batchControlData.mode = 'cool'">
+                  制冷
+                </button>
+                <button :class="[
+                  'control-btn',
+                  { active: batchControlData.mode === 'heat' },
+                ]" @click="batchControlData.mode = 'heat'">
+                  制热
+                </button>
+                <button :class="[
+                  'control-btn',
+                  { active: batchControlData.mode === 'dehumidify' },
+                ]" @click="batchControlData.mode = 'dehumidify'">
+                  除湿
+                </button>
               </div>
             </div>
 
@@ -777,8 +965,12 @@
             <div class="control-section">
               <div class="section-title">设定风档</div>
               <div class="wind-control">
-                <button :class="['wind-btn', { active: batchControlData.windMode === 'auto' }]"
-                  @click="batchControlData.windMode = 'auto'">自动</button>
+                <button :class="[
+                  'wind-btn',
+                  { active: batchControlData.windMode === 'auto' },
+                ]" @click="batchControlData.windMode = 'auto'">
+                  自动
+                </button>
                 <el-slider v-model="batchControlData.windLevel" :min="1" :max="7" :step="1" class="wind-slider" />
                 <span class="wind-value">{{ batchControlData.windLevel }}档</span>
               </div>
@@ -789,72 +981,149 @@
             <div class="control-section">
               <div class="section-title">只响应开机</div>
               <div class="control-buttons">
-                <button :class="['control-btn', { active: batchControlData.onlyOn === 'none' }]"
-                  @click="batchControlData.onlyOn = 'none'">不设定</button>
-                <button :class="['control-btn', { active: batchControlData.onlyOn === 'unlocked' }]"
-                  @click="batchControlData.onlyOn = 'unlocked'">未锁定</button>
-                <button :class="['control-btn', { active: batchControlData.onlyOn === 'locked' }]"
-                  @click="batchControlData.onlyOn = 'locked'">锁定</button>
+                <button :class="[
+                  'control-btn',
+                  { active: batchControlData.onlyOn === 'none' },
+                ]" @click="batchControlData.onlyOn = 'none'">
+                  不设定
+                </button>
+                <button :class="[
+                  'control-btn',
+                  { active: batchControlData.onlyOn === 'unlocked' },
+                ]" @click="batchControlData.onlyOn = 'unlocked'">
+                  未锁定
+                </button>
+                <button :class="[
+                  'control-btn',
+                  { active: batchControlData.onlyOn === 'locked' },
+                ]" @click="batchControlData.onlyOn = 'locked'">
+                  锁定
+                </button>
               </div>
             </div>
 
             <div class="control-section">
               <div class="section-title">只响应关机</div>
               <div class="control-buttons">
-                <button :class="['control-btn', { active: batchControlData.onlyOff === 'none' }]"
-                  @click="batchControlData.onlyOff = 'none'">不设定</button>
-                <button :class="['control-btn', { active: batchControlData.onlyOff === 'unlocked' }]"
-                  @click="batchControlData.onlyOff = 'unlocked'">未锁定</button>
-                <button :class="['control-btn', { active: batchControlData.onlyOff === 'locked' }]"
-                  @click="batchControlData.onlyOff = 'locked'">锁定</button>
+                <button :class="[
+                  'control-btn',
+                  { active: batchControlData.onlyOff === 'none' },
+                ]" @click="batchControlData.onlyOff = 'none'">
+                  不设定
+                </button>
+                <button :class="[
+                  'control-btn',
+                  { active: batchControlData.onlyOff === 'unlocked' },
+                ]" @click="batchControlData.onlyOff = 'unlocked'">
+                  未锁定
+                </button>
+                <button :class="[
+                  'control-btn',
+                  { active: batchControlData.onlyOff === 'locked' },
+                ]" @click="batchControlData.onlyOff = 'locked'">
+                  锁定
+                </button>
               </div>
             </div>
 
             <div class="control-section">
-              <div class="section-title">模式锁定 <span class="tip">(部分内机不支持锁定送风功能，不会影响送风模式锁定控制)</span></div>
+              <div class="section-title">
+                模式锁定
+                <span class="tip">(部分内机不支持锁定送风功能，不会影响送风模式锁定控制)</span>
+              </div>
               <div class="control-buttons">
-                <button :class="['control-btn', { active: batchControlData.modeLock === 'none' }]"
-                  @click="batchControlData.modeLock = 'none'">不设定</button>
-                <button :class="['control-btn', { active: batchControlData.modeLock === 'unlocked' }]"
-                  @click="batchControlData.modeLock = 'unlocked'">未锁定</button>
-                <button :class="['control-btn', { active: batchControlData.modeLock === 'cool' }]"
-                  @click="batchControlData.modeLock = 'cool'">锁定制冷</button>
-                <button :class="['control-btn', { active: batchControlData.modeLock === 'heat' }]"
-                  @click="batchControlData.modeLock = 'heat'">锁定制热</button>
-                <button :class="['control-btn', { active: batchControlData.modeLock === 'fan' }]"
-                  @click="batchControlData.modeLock = 'fan'">锁定送风</button>
+                <button :class="[
+                  'control-btn',
+                  { active: batchControlData.modeLock === 'none' },
+                ]" @click="batchControlData.modeLock = 'none'">
+                  不设定
+                </button>
+                <button :class="[
+                  'control-btn',
+                  { active: batchControlData.modeLock === 'unlocked' },
+                ]" @click="batchControlData.modeLock = 'unlocked'">
+                  未锁定
+                </button>
+                <button :class="[
+                  'control-btn',
+                  { active: batchControlData.modeLock === 'cool' },
+                ]" @click="batchControlData.modeLock = 'cool'">
+                  锁定制冷
+                </button>
+                <button :class="[
+                  'control-btn',
+                  { active: batchControlData.modeLock === 'heat' },
+                ]" @click="batchControlData.modeLock = 'heat'">
+                  锁定制热
+                </button>
+                <button :class="[
+                  'control-btn',
+                  { active: batchControlData.modeLock === 'fan' },
+                ]" @click="batchControlData.modeLock = 'fan'">
+                  锁定送风
+                </button>
               </div>
             </div>
 
             <div class="control-section">
               <div class="section-title">风挡锁定</div>
               <div class="control-buttons">
-                <button :class="['control-btn', { active: batchControlData.windLock === 'none' }]"
-                  @click="batchControlData.windLock = 'none'">不设定</button>
-                <button :class="['control-btn', { active: batchControlData.windLock === 'unlocked' }]"
-                  @click="batchControlData.windLock = 'unlocked'">未锁定</button>
-                <button :class="['control-btn', { active: batchControlData.windLock === 'locked' }]"
-                  @click="batchControlData.windLock = 'locked'">锁定</button>
+                <button :class="[
+                  'control-btn',
+                  { active: batchControlData.windLock === 'none' },
+                ]" @click="batchControlData.windLock = 'none'">
+                  不设定
+                </button>
+                <button :class="[
+                  'control-btn',
+                  { active: batchControlData.windLock === 'unlocked' },
+                ]" @click="batchControlData.windLock = 'unlocked'">
+                  未锁定
+                </button>
+                <button :class="[
+                  'control-btn',
+                  { active: batchControlData.windLock === 'locked' },
+                ]" @click="batchControlData.windLock = 'locked'">
+                  锁定
+                </button>
               </div>
             </div>
 
             <div class="control-section">
               <div class="section-title">禁用线控器</div>
               <div class="control-buttons">
-                <button :class="['control-btn', { active: batchControlData.disableController === 'none' }]"
-                  @click="batchControlData.disableController = 'none'">不设定</button>
-                <button :class="['control-btn', { active: batchControlData.disableController === 'unlocked' }]"
-                  @click="batchControlData.disableController = 'unlocked'">未锁定</button>
-                <button :class="['control-btn', { active: batchControlData.disableController === 'locked' }]"
-                  @click="batchControlData.disableController = 'locked'">锁定</button>
+                <button :class="[
+                  'control-btn',
+                  { active: batchControlData.disableController === 'none' },
+                ]" @click="batchControlData.disableController = 'none'">
+                  不设定
+                </button>
+                <button :class="[
+                  'control-btn',
+                  {
+                    active: batchControlData.disableController === 'unlocked',
+                  },
+                ]" @click="batchControlData.disableController = 'unlocked'">
+                  未锁定
+                </button>
+                <button :class="[
+                  'control-btn',
+                  { active: batchControlData.disableController === 'locked' },
+                ]" @click="batchControlData.disableController = 'locked'">
+                  锁定
+                </button>
               </div>
             </div>
           </template>
         </div>
 
         <div class="batch-footer">
-          <button type="button" class="batch-btn cancel" @click="closeBatchControl">取消</button>
-          <button type="button" class="batch-btn confirm" @click="confirmBatchControl">指令下发</button>
+          <button type="button" class="batch-btn cancel" @click="closeBatchControl">
+            取消
+          </button>
+          <button type="button" class="batch-btn confirm" @click="confirmBatchControl">
+            指令下发
+          </button>
         </div>
       </el-drawer>
 
@@ -874,16 +1143,20 @@
               <input type="checkbox" :checked="isDeviceSelected(item.id)" @click="toggleDeviceSelect(item.id)" />
               <div class="delete-device-info">
                 <span class="delete-device-name">{{ item.name }}</span>
-                <span class="delete-device-detail">交流电表：{{ item.acPower || '-' }}</span>
-                <span class="delete-device-detail">直流电表：{{ item.dcPower || '-' }}</span>
+                <span class="delete-device-detail">交流电表：{{ item.acPower || "-" }}</span>
+                <span class="delete-device-detail">直流电表：{{ item.dcPower || "-" }}</span>
               </div>
             </div>
           </div>
         </div>
 
         <template #footer>
-          <button type="button" class="batch-btn cancel" @click="closeBatchDelete">取消</button>
-          <button type="button" class="batch-btn confirm" @click="confirmBatchDelete">删除</button>
+          <button type="button" class="batch-btn cancel" @click="closeBatchDelete">
+            取消
+          </button>
+          <button type="button" class="batch-btn confirm" @click="confirmBatchDelete">
+            删除
+          </button>
         </template>
       </el-dialog>
 
@@ -901,8 +1174,12 @@
         </div>
 
         <template #footer>
-          <button type="button" class="batch-btn cancel" @click="closeCreateZoneDialog">取消</button>
-          <button type="button" class="batch-btn confirm" @click="confirmCreateZone">确定</button>
+          <button type="button" class="batch-btn cancel" @click="closeCreateZoneDialog">
+            取消
+          </button>
+          <button type="button" class="batch-btn confirm" @click="confirmCreateZone">
+            确定
+          </button>
         </template>
       </el-dialog>
     </template>
@@ -912,28 +1189,28 @@
 </template>
 
 <script>
-import QuickControlPanel from './components/QuickControlPanel'
-import ControlLogsPanel from './components/ControlLogsPanel'
+import QuickControlPanel from "./components/QuickControlPanel";
+import ControlLogsPanel from "./components/ControlLogsPanel";
 
 export default {
-  name: 'EquipmentManagement',
+  name: "EquipmentManagement",
   components: {
     QuickControlPanel,
-    ControlLogsPanel
+    ControlLogsPanel,
   },
   data() {
     return {
-      activeTopTab: 'management',
-      activeMachineTab: 'indoor',
-      viewMode: 'card',
+      activeTopTab: "management",
+      activeMachineTab: "indoor",
+      viewMode: "card",
       currentPage: 1,
       pageSize: 2,
       expandedFilters: false,
       sidebarCollapsed: false,
       zoneEditMode: false,
       showMoreMenu: false,
-      nodeMenuId: '',
-      currentSearchField: '设备名称',
+      nodeMenuId: "",
+      currentSearchField: "设备名称",
       showSearchDropdown: false,
       suggestions: [],
       showSuggestions: false,
@@ -943,843 +1220,1375 @@ export default {
       showSortDialog: false,
       showDeviceDetail: false,
       selectedDevice: null,
-      activeDetailTab: 'basic',
+      activeDetailTab: "basic",
       relatedSectionExpanded: true,
       relatedIndoors: [],
       showBatchControl: false,
       showBatchDelete: false,
       showCreateZoneDialog: false,
-      selectedZoneType: '',
-      currentZoneGroupId: '',
-      activeBatchTab: 'normal',
+      selectedZoneType: "",
+      currentZoneGroupId: "",
+      activeBatchTab: "normal",
       batchTabs: [
-        { key: 'normal', label: '常规控制' },
-        { key: 'lock', label: '锁定控制' }
+        { key: "normal", label: "常规控制" },
+        { key: "lock", label: "锁定控制" },
       ],
       batchControlData: {
-        power: '',
-        mode: 'none',
+        power: "",
+        mode: "none",
         temperature: 26,
-        windMode: 'auto',
+        windMode: "auto",
         windLevel: 1,
-        onlyOn: 'none',
-        onlyOff: 'none',
-        modeLock: 'none',
-        windLock: 'none',
-        disableController: 'none'
+        onlyOn: "none",
+        onlyOff: "none",
+        modeLock: "none",
+        windLock: "none",
+        disableController: "none",
       },
       selectedDevices: [],
       editingName: false,
-      editNameValue: '',
+      editNameValue: "",
       smartNamingOptions: {
-        '生产区': ['厂区', '配电室'],
-        '生产区维护': ['厂区', '保洁室'],
-        '物业维护': ['保安室', '保洁室'],
-        '娱乐区': ['羽毛球场', '乒乓球场', '泳池'],
-        '休息区': ['饭堂', '休息室', '宿舍', '房间'],
-        '教学区': ['课室'],
-        '办公区': ['办公室', '会议室'],
-        '停车区': ['停车场']
+        生产区: ["厂区", "配电室"],
+        生产区维护: ["厂区", "保洁室"],
+        物业维护: ["保安室", "保洁室"],
+        娱乐区: ["羽毛球场", "乒乓球场", "泳池"],
+        休息区: ["饭堂", "休息室", "宿舍", "房间"],
+        教学区: ["课室"],
+        办公区: ["办公室", "会议室"],
+        停车区: ["停车场"],
       },
       sortConditions: [],
       sortFieldOptions: [
-        { value: 'status', label: '设备状态', desc: '按运行>故障>关机>离线排序' },
-        { value: 'name', label: '设备名称', desc: '名称从左到右，中文(拼音)>英文>数字' }
+        {
+          value: "status",
+          label: "设备状态",
+          desc: "按运行>故障>关机>离线排序",
+        },
+        {
+          value: "name",
+          label: "设备名称",
+          desc: "名称从左到右，中文(拼音)>英文>数字",
+        },
       ],
-      selectedZone: 'group-unassigned',
-      selectedEditZone: '',
+      selectedZone: "group-unassigned",
+      selectedEditZone: "",
       system: [],
-      indoorBarcodeOptions: ['0000CC311178CCM262C254100625902D', '0000CC311178CCM262C2541006270K1H'],
-      outdoorBarcodeOptions: ['0000CC311178CCM262C254100625903E', '0000CC311178CCM262C2541006270K2J', '0000CC311178CCM262C2541006270K3L'],
+      indoorBarcodeOptions: [
+        "0000CC311178CCM262C254100625902D",
+        "0000CC311178CCM262C2541006270K1H",
+      ],
+      outdoorBarcodeOptions: [
+        "0000CC311178CCM262C254100625903E",
+        "0000CC311178CCM262C2541006270K2J",
+        "0000CC311178CCM262C2541006270K3L",
+      ],
       topTabs: [
-        { key: 'management', label: '设备管理' },
-        { key: 'control', label: '快捷控制' },
-        { key: 'logs', label: '控制日志' }
+        { key: "management", label: "设备管理" },
+        { key: "control", label: "快捷控制" },
+        { key: "logs", label: "控制日志" },
       ],
       machineTabs: [
-        { key: 'indoor', label: '室内机' },
-        { key: 'outdoor', label: '室外机' }
+        { key: "indoor", label: "室内机" },
+        { key: "outdoor", label: "室外机" },
       ],
       filters: {
-        keyword: '',
+        keyword: "",
         system: [],
-        lockStatus: '',
-        contractStatus: '',
-        indoorModel: '',
-        silentMode: '',
-        outdoorMuteMode: '',
-        outdoorContractStatus: '',
-        outdoorDeviceModel: '',
-        modePriority: '',
-        billingStatus: '',
-        pvType: '',
-        runningStatus: []
+        lockStatus: "",
+        contractStatus: "",
+        indoorModel: "",
+        silentMode: "",
+        outdoorMuteMode: "",
+        outdoorContractStatus: "",
+        outdoorDeviceModel: "",
+        modePriority: "",
+        billingStatus: "",
+        pvType: "",
+        runningStatus: [],
       },
       systemOptions: [
-        { value: 2, label: 'VRF-00627-02' },
-        { value: 1, label: 'VRF-00625-01' }
+        { value: 2, label: "VRF-00627-02" },
+        { value: 1, label: "VRF-00625-01" },
       ],
       lockStatusOptions: [
-        { value: 'none', label: '无锁定' },
-        { value: 'only-on', label: '只响应开机' },
-        { value: 'only-off', label: '只响应关机' },
-        { value: 'cool-lower', label: '制冷温度下限' },
-        { value: 'cool-mode-lock', label: '制冷模式锁定' },
-        { value: 'heat-upper', label: '制热温度上限' },
-        { value: 'heat-mode-lock', label: '制热模式锁定' },
-        { value: 'fan-lock', label: '风挡锁定' }
+        { value: "none", label: "无锁定" },
+        { value: "only-on", label: "只响应开机" },
+        { value: "only-off", label: "只响应关机" },
+        { value: "cool-lower", label: "制冷温度下限" },
+        { value: "cool-mode-lock", label: "制冷模式锁定" },
+        { value: "heat-upper", label: "制热温度上限" },
+        { value: "heat-mode-lock", label: "制热模式锁定" },
+        { value: "fan-lock", label: "风挡锁定" },
       ],
       contractStatusOptions: [
-        { value: 'active', label: '合约中' },
-        { value: 'trial', label: '试用中' },
-        { value: 'disabled', label: '未启用' },
-        { value: 'expired', label: '已过期' }
+        { value: "active", label: "合约中" },
+        { value: "trial", label: "试用中" },
+        { value: "disabled", label: "未启用" },
+        { value: "expired", label: "已过期" },
       ],
       indoorModelOptions: [
-        { value: 'normal', label: '普通内机' },
-        { value: 'heat-exchange', label: '全热交换机' },
-        { value: 'fresh-air', label: '新风机' }
+        { value: "normal", label: "普通内机" },
+        { value: "heat-exchange", label: "全热交换机" },
+        { value: "fresh-air", label: "新风机" },
       ],
       silentModeOptions: [
-        { value: 'on', label: '静音' },
-        { value: 'off', label: '静音关闭' }
+        { value: "on", label: "静音" },
+        { value: "off", label: "静音关闭" },
       ],
       outdoorModelOptions: [
-        { value: 'large-vrf', label: '大多联' },
-        { value: 'small-vrf', label: '小多联' },
-        { value: 'other', label: '其他' }
+        { value: "large-vrf", label: "大多联" },
+        { value: "small-vrf", label: "小多联" },
+        { value: "other", label: "其他" },
       ],
       modePriorityOptions: [
-        { value: 'cool-first', label: '制冷优先' },
-        { value: 'heat-first', label: '制热优先' },
-        { value: 'energy-first', label: '能需优先' },
-        { value: 'first-on-first', label: '先开优先' },
-        { value: 'only-heat', label: '只制热' },
-        { value: 'only-cool', label: '只制冷' },
-        { value: 'change-over', label: 'ChangeOver' },
-        { value: 'more-on-first', label: '多开优先' }
+        { value: "cool-first", label: "制冷优先" },
+        { value: "heat-first", label: "制热优先" },
+        { value: "energy-first", label: "能需优先" },
+        { value: "first-on-first", label: "先开优先" },
+        { value: "only-heat", label: "只制热" },
+        { value: "only-cool", label: "只制冷" },
+        { value: "change-over", label: "ChangeOver" },
+        { value: "more-on-first", label: "多开优先" },
       ],
       billingStatusOptions: [
-        { value: 'enabled', label: '已开通' },
-        { value: 'disabled', label: '未开通' }
+        { value: "enabled", label: "已开通" },
+        { value: "disabled", label: "未开通" },
       ],
       pvTypeOptions: [
-        { value: 'pv-hybrid', label: '光混' },
-        { value: 'pv-storage', label: '光储' }
+        { value: "pv-hybrid", label: "光混" },
+        { value: "pv-storage", label: "光储" },
       ],
       indoorZones: [
         {
-          id: 'group-unassigned',
-          name: '未分区',
+          id: "group-unassigned",
+          name: "未分区",
           expanded: true,
           items: [
-            { id: 'idu-11', label: '1号系统11' },
-            { id: 'idu-12', label: '1号系统12' },
-            { id: 'idu-15', label: '1号系统15' },
-            { id: 'idu-22', label: '1号系统22' },
-            { id: 'idu-39', label: '1号系统39' },
-            { id: 'idu-40', label: '1号系统40' },
-            { id: 'idu-010', label: 'IDU-00625-0-10 零食角...' },
-            { id: 'idu-011', label: 'IDU-00625-0-11爱丁堡' },
-            { id: 'idu-012', label: 'IDU-00625-0-12 慕尼黑' },
-            { id: 'idu-013', label: 'IDU-00625-0-13 慕尼黑...' },
-            { id: 'idu-004', label: 'IDU-00625-0-4 旧金山...' },
-            { id: 'idu-005', label: 'IDU-00625-0-5 温哥华' },
-            { id: 'idu-006', label: 'IDU-00625-0-6 健身房' },
-            { id: 'idu-009', label: 'IDU-00625-0-9 零食角' },
-            { id: 'idu-141', label: 'IDU-00627-2-14华芯' },
-            { id: 'idu-152', label: 'IDU-00627-2-15 林宏 Ti...' },
-            { id: 'idu-162', label: 'IDU-00627-2-16 赣哥 朱钰' }
-          ]
-        }
+            { id: "idu-11", label: "1号系统11" },
+            { id: "idu-12", label: "1号系统12" },
+            { id: "idu-15", label: "1号系统15" },
+            { id: "idu-22", label: "1号系统22" },
+            { id: "idu-39", label: "1号系统39" },
+            { id: "idu-40", label: "1号系统40" },
+            { id: "idu-010", label: "IDU-00625-0-10 零食角..." },
+            { id: "idu-011", label: "IDU-00625-0-11爱丁堡" },
+            { id: "idu-012", label: "IDU-00625-0-12 慕尼黑" },
+            { id: "idu-013", label: "IDU-00625-0-13 慕尼黑..." },
+            { id: "idu-004", label: "IDU-00625-0-4 旧金山..." },
+            { id: "idu-005", label: "IDU-00625-0-5 温哥华" },
+            { id: "idu-006", label: "IDU-00625-0-6 健身房" },
+            { id: "idu-009", label: "IDU-00625-0-9 零食角" },
+            { id: "idu-141", label: "IDU-00627-2-14华芯" },
+            { id: "idu-152", label: "IDU-00627-2-15 林宏 Ti..." },
+            { id: "idu-162", label: "IDU-00627-2-16 赣哥 朱钰" },
+          ],
+        },
       ],
       outdoorZones: [
         {
-          id: 'vrf-1',
-          name: 'VRF-00625-01',
+          id: "vrf-1",
+          name: "VRF-00625-01",
           expanded: true,
           items: [
-            { id: 'odu-129-a', label: 'ODU-00625-1-129' },
-            { id: 'odu-130-a', label: 'ODU-00625-1-130' }
-          ]
+            { id: "odu-129-a", label: "ODU-00625-1-129" },
+            { id: "odu-130-a", label: "ODU-00625-1-130" },
+          ],
         },
         {
-          id: 'vrf-2',
-          name: 'VRF-00627-02',
+          id: "vrf-2",
+          name: "VRF-00627-02",
           expanded: true,
           items: [
-            { id: 'odu-129-b', label: 'ODU-00627-2-129' },
-            { id: 'odu-130-b', label: 'ODU-00627-2-130' }
-          ]
-        }
+            { id: "odu-129-b", label: "ODU-00627-2-129" },
+            { id: "odu-130-b", label: "ODU-00627-2-130" },
+          ],
+        },
       ],
       editableZoneGroups: [],
       props: { multiple: true },
-      indoorOptions: [{
-        value: 1,
-        label: '运行',
-        children: [{
-          value: 2,
-          label: '制冷',
-        }, {
-          value: 3,
-          label: '制热',
-        }, {
-          value: 4,
-          label: '送风',
-        }, {
-          value: 5,
-          label: '除湿',
-        }, {
-          value: 6,
-          label: '免费制冷',
-        }, {
-          value: 7,
-          label: '热交换',
-        }, {
-          value: 8,
-          label: '旁通',
-        }, {
-          value: 9,
-          label: '自动',
-        }]
-      }, {
-        value: 10,
-        label: '关机',
-      }, {
-        value: 11,
-        label: '故障',
-        children: [{
-          value: 12,
-          label: '制冷',
-        }, {
-          value: 13,
-          label: '制热',
-        }, {
-          value: 14,
-          label: '送风',
-        }, {
-          value: 15,
-          label: '除湿',
-        }, {
-          value: 16,
-          label: '免费制冷',
-        }, {
-          value: 17,
-          label: '热交换',
-        }, {
-          value: 18,
-          label: '旁通',
-        }, {
-          value: 19,
-          label: '自动',
-        }]
-      }, {
-        value: 20,
-        label: '离线',
-      }],
+      indoorOptions: [
+        {
+          value: 1,
+          label: "运行",
+          children: [
+            {
+              value: 2,
+              label: "制冷",
+            },
+            {
+              value: 3,
+              label: "制热",
+            },
+            {
+              value: 4,
+              label: "送风",
+            },
+            {
+              value: 5,
+              label: "除湿",
+            },
+            {
+              value: 6,
+              label: "免费制冷",
+            },
+            {
+              value: 7,
+              label: "热交换",
+            },
+            {
+              value: 8,
+              label: "旁通",
+            },
+            {
+              value: 9,
+              label: "自动",
+            },
+          ],
+        },
+        {
+          value: 10,
+          label: "关机",
+        },
+        {
+          value: 11,
+          label: "故障",
+          children: [
+            {
+              value: 12,
+              label: "制冷",
+            },
+            {
+              value: 13,
+              label: "制热",
+            },
+            {
+              value: 14,
+              label: "送风",
+            },
+            {
+              value: 15,
+              label: "除湿",
+            },
+            {
+              value: 16,
+              label: "免费制冷",
+            },
+            {
+              value: 17,
+              label: "热交换",
+            },
+            {
+              value: 18,
+              label: "旁通",
+            },
+            {
+              value: 19,
+              label: "自动",
+            },
+          ],
+        },
+        {
+          value: 20,
+          label: "离线",
+        },
+      ],
       runningOptions: [
-        { value: 'running', label: '运行' },
-        { value: 'off', label: '关机' },
-        { value: 'offline', label: '离线' },
-        { value: 'fault', label: '故障' }
+        { value: "running", label: "运行" },
+        { value: "off", label: "关机" },
+        { value: "offline", label: "离线" },
+        { value: "fault", label: "故障" },
       ],
       indoorCards: [
-        { id: 'c1', name: 'IDU-00627-2-20 Recoo-首尔', metricA: '-°C / 负 -°C', metricB: '-% / 负 -%', metricC: '', contract: '合约中', status: '离线', extra: '' },
-        { id: 'c2', name: '1号系统15', metricA: '-°C / 负 -°C', metricB: '-% / 负 -%', metricC: '', contract: '合约中', status: '离线', extra: '' },
-        { id: 'c3', name: 'IDU-00627-2-16 赣哥 朱钰', metricA: '-°C / 负 -°C', metricB: '-% / 负 -%', metricC: '', contract: '合约中', status: '离线', extra: '' },
-        { id: 'c4', name: 'IDU-00627-2-21财务隔壁', metricA: '-°C / 负 -°C', metricB: '-% / 负 -%', metricC: '', contract: '合约中', status: '离线', extra: '' },
-        { id: 'c5', name: '1号系统39', metricA: '-°C / 负 -°C', metricB: '-% / 负 -%', metricC: '', contract: '合约中', status: '离线', extra: '' },
-        { id: 'c6', name: '1号系统40', metricA: '-°C / 负 -°C', metricB: '-% / 负 -%', metricC: '', contract: '合约中', status: '离线', extra: '' },
-        { id: 'c7', name: 'IDU-00627-2-22 档案室-赵姐', metricA: '-°C / 负 -°C', metricB: '-% / 负 -%', metricC: '', contract: '合约中', status: '离线', extra: '' },
-        { id: 'c8', name: 'IDU-00627-2-14华芯', metricA: '-°C / 负 -°C', metricB: '-% / 负 -%', metricC: '', contract: '合约中', status: '离线', extra: '' }
+        {
+          id: "c1",
+          name: "IDU-00627-2-20 Recoo-首尔",
+          metricA: "-°C / 负 -°C",
+          metricB: "-% / 负 -%",
+          metricC: "",
+          contract: "合约中",
+          status: "离线",
+          extra: "",
+        },
+        {
+          id: "c2",
+          name: "1号系统15",
+          metricA: "-°C / 负 -°C",
+          metricB: "-% / 负 -%",
+          metricC: "",
+          contract: "合约中",
+          status: "离线",
+          extra: "",
+        },
+        {
+          id: "c3",
+          name: "IDU-00627-2-16 赣哥 朱钰",
+          metricA: "-°C / 负 -°C",
+          metricB: "-% / 负 -%",
+          metricC: "",
+          contract: "合约中",
+          status: "离线",
+          extra: "",
+        },
+        {
+          id: "c4",
+          name: "IDU-00627-2-21财务隔壁",
+          metricA: "-°C / 负 -°C",
+          metricB: "-% / 负 -%",
+          metricC: "",
+          contract: "合约中",
+          status: "离线",
+          extra: "",
+        },
+        {
+          id: "c5",
+          name: "1号系统39",
+          metricA: "-°C / 负 -°C",
+          metricB: "-% / 负 -%",
+          metricC: "",
+          contract: "合约中",
+          status: "离线",
+          extra: "",
+        },
+        {
+          id: "c6",
+          name: "1号系统40",
+          metricA: "-°C / 负 -°C",
+          metricB: "-% / 负 -%",
+          metricC: "",
+          contract: "合约中",
+          status: "离线",
+          extra: "",
+        },
+        {
+          id: "c7",
+          name: "IDU-00627-2-22 档案室-赵姐",
+          metricA: "-°C / 负 -°C",
+          metricB: "-% / 负 -%",
+          metricC: "",
+          contract: "合约中",
+          status: "离线",
+          extra: "",
+        },
+        {
+          id: "c8",
+          name: "IDU-00627-2-14华芯",
+          metricA: "-°C / 负 -°C",
+          metricB: "-% / 负 -%",
+          metricC: "",
+          contract: "合约中",
+          status: "离线",
+          extra: "",
+        },
       ],
       outdoorCards: [
-        { id: 'o1', name: 'ODU-00627-2-129', metricA: '- 摄氏度', metricB: '', metricC: '', contract: '合约中', status: '离线', extra: '内机台数: 11', acPower: '147236.70kWh', dcPower: '-' },
-        { id: 'o2', name: 'ODU-00627-2-130', metricA: '- 摄氏度', metricB: '', metricC: '', contract: '合约中', status: '离线', extra: '内机台数: 11', acPower: '147236.70kWh', dcPower: '-' }
+        {
+          id: "o1",
+          name: "ODU-00627-2-129",
+          metricA: "- 摄氏度",
+          metricB: "",
+          metricC: "",
+          contract: "合约中",
+          status: "离线",
+          extra: "内机台数: 11",
+          acPower: "147236.70kWh",
+          dcPower: "-",
+        },
+        {
+          id: "o2",
+          name: "ODU-00627-2-130",
+          metricA: "- 摄氏度",
+          metricB: "",
+          metricC: "",
+          contract: "合约中",
+          status: "离线",
+          extra: "内机台数: 11",
+          acPower: "147236.70kWh",
+          dcPower: "-",
+        },
       ],
       indoorEditCards: [
-        { id: 'e1', name: 'IDU-00627-2-20 Recoo-首尔', currentTemp: '20°C', targetTemp: '29°C', contract: '合约中', status: '离线' },
-        { id: 'e2', name: 'IDU-00627-2-21财务隔壁', currentTemp: '26°C', targetTemp: '29°C', contract: '合约中', status: '离线' },
-        { id: 'e3', name: 'IDU-00627-2-1机房', currentTemp: '17°C', targetTemp: '28°C', contract: '合约中', status: '离线' },
-        { id: 'e4', name: 'IDU-00625-0-9 零食角', currentTemp: '27°C', targetTemp: '27°C', contract: '合约中', status: '离线' },
-        { id: 'e5', name: 'IDU-00625-0-10 零食角隔壁', currentTemp: '27°C', targetTemp: '28°C', contract: '合约中', status: '离线' },
-        { id: 'e6', name: 'IDU-00625-0-12 慕尼黑', currentTemp: '28°C', targetTemp: '28°C', contract: '合约中', status: '离线' },
-        { id: 'e7', name: 'IDU-00627-2-14华芯', currentTemp: '--°C', targetTemp: '28°C', contract: '合约中', status: '离线' },
-        { id: 'e8', name: 'IDU-00627-2-15 林宏 Tim Jack', currentTemp: '22°C', targetTemp: '28°C', contract: '合约中', status: '离线' }
+        {
+          id: "e1",
+          name: "IDU-00627-2-20 Recoo-首尔",
+          currentTemp: "20°C",
+          targetTemp: "29°C",
+          contract: "合约中",
+          status: "离线",
+        },
+        {
+          id: "e2",
+          name: "IDU-00627-2-21财务隔壁",
+          currentTemp: "26°C",
+          targetTemp: "29°C",
+          contract: "合约中",
+          status: "离线",
+        },
+        {
+          id: "e3",
+          name: "IDU-00627-2-1机房",
+          currentTemp: "17°C",
+          targetTemp: "28°C",
+          contract: "合约中",
+          status: "离线",
+        },
+        {
+          id: "e4",
+          name: "IDU-00625-0-9 零食角",
+          currentTemp: "27°C",
+          targetTemp: "27°C",
+          contract: "合约中",
+          status: "离线",
+        },
+        {
+          id: "e5",
+          name: "IDU-00625-0-10 零食角隔壁",
+          currentTemp: "27°C",
+          targetTemp: "28°C",
+          contract: "合约中",
+          status: "离线",
+        },
+        {
+          id: "e6",
+          name: "IDU-00625-0-12 慕尼黑",
+          currentTemp: "28°C",
+          targetTemp: "28°C",
+          contract: "合约中",
+          status: "离线",
+        },
+        {
+          id: "e7",
+          name: "IDU-00627-2-14华芯",
+          currentTemp: "--°C",
+          targetTemp: "28°C",
+          contract: "合约中",
+          status: "离线",
+        },
+        {
+          id: "e8",
+          name: "IDU-00627-2-15 林宏 Tim Jack",
+          currentTemp: "22°C",
+          targetTemp: "28°C",
+          contract: "合约中",
+          status: "离线",
+        },
       ],
       indoorTableRows: [
-        { id: 't1', code: 'IDU-00627-2-20', name: 'IDU-00627-2-20 Recoo-首尔', status: '离线', address: '20', system: '0000CC311178CCM...', attachment: 'v4/v4+内机', model: '--', mode: '制冷' },
-        { id: 't2', code: 'IDU-00627-2-19', name: '1号系统15', status: '离线', address: '19', system: '0000CC311178CCM...', attachment: 'v4/v4+内机', model: '--', mode: '制热' }
+        {
+          id: "t1",
+          code: "IDU-00627-2-20",
+          name: "IDU-00627-2-20 Recoo-首尔",
+          status: "离线",
+          address: "20",
+          system: "0000CC311178CCM...",
+          attachment: "v4/v4+内机",
+          model: "--",
+          mode: "制冷",
+        },
+        {
+          id: "t2",
+          code: "IDU-00627-2-19",
+          name: "1号系统15",
+          status: "离线",
+          address: "19",
+          system: "0000CC311178CCM...",
+          attachment: "v4/v4+内机",
+          model: "--",
+          mode: "制热",
+        },
       ],
       outdoorTableRows: [
-        { id: 'ot1', code: 'ODU-00625-1-129', name: 'ODU-00625-1-129', status: '离线', address: '0000CC311178CCM...', system: '大多联', attachment: '--', model: '自动优先' },
-        { id: 'ot2', code: 'ODU-00625-1-130', name: 'ODU-00625-1-130', status: '离线', address: '0000CC311178CCM...', system: '大多联', attachment: '--', model: '自动优先' },
-        { id: 'ot3', code: 'ODU-00627-2-129', name: 'ODU-00627-2-129', status: '离线', address: '0000CC311178CCM...', system: '大多联', attachment: '--', model: '自动优先' },
-        { id: 'ot4', code: 'ODU-00627-2-130', name: 'ODU-00627-2-130', status: '离线', address: '0000CC311178CCM...', system: '大多联', attachment: '--', model: '自动优先' }
-      ]
-    }
+        {
+          id: "ot1",
+          code: "ODU-00625-1-129",
+          name: "ODU-00625-1-129",
+          status: "离线",
+          address: "0000CC311178CCM...",
+          system: "大多联",
+          attachment: "--",
+          model: "自动优先",
+        },
+        {
+          id: "ot2",
+          code: "ODU-00625-1-130",
+          name: "ODU-00625-1-130",
+          status: "离线",
+          address: "0000CC311178CCM...",
+          system: "大多联",
+          attachment: "--",
+          model: "自动优先",
+        },
+        {
+          id: "ot3",
+          code: "ODU-00627-2-129",
+          name: "ODU-00627-2-129",
+          status: "离线",
+          address: "0000CC311178CCM...",
+          system: "大多联",
+          attachment: "--",
+          model: "自动优先",
+        },
+        {
+          id: "ot4",
+          code: "ODU-00627-2-130",
+          name: "ODU-00627-2-130",
+          status: "离线",
+          address: "0000CC311178CCM...",
+          system: "大多联",
+          attachment: "--",
+          model: "自动优先",
+        },
+      ],
+    };
   },
   computed: {
     zoneTreeData() {
-      const groups = this.editableZoneGroups
+      const groups = this.editableZoneGroups;
       const buildTree = (parentId) => {
         return groups
-          .filter(g => g.parentId === parentId)
-          .map(g => ({
+          .filter((g) => g.parentId === parentId)
+          .map((g) => ({
             id: g.id,
             label: `${g.name} (${g.count})`,
             name: g.name,
             count: g.count,
             level: g.level,
             parentId: g.parentId,
-            children: buildTree(g.id)
-          }))
-      }
-      return buildTree(null)
+            children: buildTree(g.id),
+          }));
+      };
+      return buildTree(null);
     },
     sortedEditableZoneGroups() {
-      const result = []
-      const groups = this.editableZoneGroups
+      const result = [];
+      const groups = this.editableZoneGroups;
       const findChildren = (parentId) => {
-        return groups.filter(g => g.parentId === parentId)
-      }
+        return groups.filter((g) => g.parentId === parentId);
+      };
       const traverse = (parentId) => {
-        const children = findChildren(parentId)
-        children.forEach(child => {
-          result.push(child)
-          traverse(child.id)
-        })
-      }
-      traverse(null)
-      return result
+        const children = findChildren(parentId);
+        children.forEach((child) => {
+          result.push(child);
+          traverse(child.id);
+        });
+      };
+      traverse(null);
+      return result;
     },
     currentZoneGroups() {
-      return this.activeMachineTab === 'indoor' ? this.indoorZones : this.outdoorZones
+      return this.activeMachineTab === "indoor"
+        ? this.indoorZones
+        : this.outdoorZones;
+    },
+    zoneTreeProps() {
+      return { children: "children", label: "label" };
+    },
+    currentZoneTreeData() {
+      return this.currentZoneGroups.map((group) => ({
+        id: group.id,
+        type: "group",
+        label: `${group.name}（${group.items.length}）`,
+        raw: group,
+        children: group.items.map((item) => ({
+          id: item.id,
+          type: "item",
+          label: item.label,
+          raw: item,
+          parentId: group.id,
+          parent: group,
+        })),
+      }));
+    },
+    defaultExpandedZoneKeys() {
+      return this.currentZoneGroups
+        .filter((group) => group.expanded)
+        .map((group) => group.id);
     },
     currentCards() {
-      return this.activeMachineTab === 'indoor' ? this.filteredIndoorCards : this.filteredOutdoorCards
+      return this.activeMachineTab === "indoor"
+        ? this.filteredIndoorCards
+        : this.filteredOutdoorCards;
     },
     currentTableRows() {
-      return this.activeMachineTab === 'indoor' ? this.filteredIndoorTableRows : this.filteredOutdoorTableRows
+      return this.activeMachineTab === "indoor"
+        ? this.filteredIndoorTableRows
+        : this.filteredOutdoorTableRows;
     },
     pagedTableRows() {
-      const start = (this.currentPage - 1) * this.pageSize
-      return this.currentTableRows.slice(start, start + this.pageSize)
+      const start = (this.currentPage - 1) * this.pageSize;
+      return this.currentTableRows.slice(start, start + this.pageSize);
     },
     totalPages() {
-      return Math.max(1, Math.ceil(this.currentTableRows.length / this.pageSize))
+      return Math.max(
+        1,
+        Math.ceil(this.currentTableRows.length / this.pageSize)
+      );
     },
     pageNumbers() {
-      return Array.from({ length: this.totalPages }, (_, index) => index + 1)
+      return Array.from({ length: this.totalPages }, (_, index) => index + 1);
     },
     currentZoneCount() {
-      return this.currentZoneGroups.reduce((sum, group) => sum + group.items.length, 0)
+      return this.currentZoneGroups.reduce(
+        (sum, group) => sum + group.items.length,
+        0
+      );
     },
     currentPaginationText() {
-      const total = this.currentTableRows.length
-      if (!total) return '第0-0条/共0条'
-      const start = (this.currentPage - 1) * this.pageSize + 1
-      const end = Math.min(this.currentPage * this.pageSize, total)
-      return `第${start}-${end}条/共${total}条`
+      const total = this.currentTableRows.length;
+      if (!total) return "第0-0条/共0条";
+      const start = (this.currentPage - 1) * this.pageSize + 1;
+      const end = Math.min(this.currentPage * this.pageSize, total);
+      return `第${start}-${end}条/共${total}条`;
     },
     filteredIndoorCards() {
-      if (!this.filters.keyword) return this.indoorCards
-      const keyword = this.filters.keyword.toLowerCase()
-      return this.indoorCards.filter(card => card.name.toLowerCase().includes(keyword))
+      if (!this.filters.keyword) return this.indoorCards;
+      const keyword = this.filters.keyword.toLowerCase();
+      return this.indoorCards.filter((card) =>
+        card.name.toLowerCase().includes(keyword)
+      );
     },
     filteredOutdoorCards() {
-      if (!this.filters.keyword) return this.outdoorCards
-      const keyword = this.filters.keyword.toLowerCase()
-      return this.outdoorCards.filter(card => card.name.toLowerCase().includes(keyword))
+      if (!this.filters.keyword) return this.outdoorCards;
+      const keyword = this.filters.keyword.toLowerCase();
+      return this.outdoorCards.filter((card) =>
+        card.name.toLowerCase().includes(keyword)
+      );
     },
     filteredIndoorTableRows() {
-      if (!this.filters.keyword) return this.indoorTableRows
-      const keyword = this.filters.keyword.toLowerCase()
-      return this.indoorTableRows.filter(row => row.name.toLowerCase().includes(keyword))
+      if (!this.filters.keyword) return this.indoorTableRows;
+      const keyword = this.filters.keyword.toLowerCase();
+      return this.indoorTableRows.filter((row) =>
+        row.name.toLowerCase().includes(keyword)
+      );
     },
     filteredOutdoorTableRows() {
-      if (!this.filters.keyword) return this.outdoorTableRows
-      const keyword = this.filters.keyword.toLowerCase()
-      return this.outdoorTableRows.filter(row => row.name.toLowerCase().includes(keyword))
+      if (!this.filters.keyword) return this.outdoorTableRows;
+      const keyword = this.filters.keyword.toLowerCase();
+      return this.outdoorTableRows.filter((row) =>
+        row.name.toLowerCase().includes(keyword)
+      );
     },
     searchFieldOptions() {
-      if (this.activeMachineTab === 'indoor') {
+      if (this.activeMachineTab === "indoor") {
         return [
-          { value: 'name', label: '设备名称' },
-          { value: 'indoorBarcode', label: '室内机条码' },
-          { value: 'indoorCode', label: '室内机编号' },
-          { value: 'outdoorBarcode', label: '室外机条码' },
-        ]
+          { value: "name", label: "设备名称" },
+          { value: "indoorBarcode", label: "室内机条码" },
+          { value: "indoorCode", label: "室内机编号" },
+          { value: "outdoorBarcode", label: "室外机条码" },
+        ];
       } else {
         return [
-          { value: 'name', label: '设备名称' },
-          { value: 'outdoorBarcode', label: '室外机条码' },
-          { value: 'outdoorCode', label: '室外机编码' },
-          { value: 'indoorCount', label: '内机台数' }
-        ]
+          { value: "name", label: "设备名称" },
+          { value: "outdoorBarcode", label: "室外机条码" },
+          { value: "outdoorCode", label: "室外机编码" },
+          { value: "indoorCount", label: "内机台数" },
+        ];
       }
     },
     detailTabs() {
-      if (this.activeMachineTab === 'outdoor') {
+      if (this.activeMachineTab === "outdoor") {
         return [
-          { key: 'basic', label: '基本信息' },
-          { key: 'related', label: '关联内机' }
-        ]
+          { key: "basic", label: "基本信息" },
+          { key: "related", label: "关联内机" },
+        ];
       }
-      return [
-        { key: 'basic', label: '基本信息' }
-      ]
-    }
+      return [{ key: "basic", label: "基本信息" }];
+    },
   },
   watch: {
-    'filters.keyword'() {
-      this.resetPagination()
+    "filters.keyword"() {
+      this.resetPagination();
     },
     totalPages(newTotalPages) {
       if (this.currentPage > newTotalPages) {
-        this.currentPage = newTotalPages
+        this.currentPage = newTotalPages;
       }
-    }
+    },
   },
   methods: {
     handleTopTabChange(tabKey) {
-      this.activeTopTab = tabKey
-      this.closeAllDialogs()
-      this.closeBatchControl()
-      this.closeBatchDelete()
-      this.closeCreateZoneDialog()
-      this.showMoreMenu = false
-      this.nodeMenuId = ''
+      this.activeTopTab = tabKey;
+      this.closeAllDialogs();
+      this.closeBatchControl();
+      this.closeBatchDelete();
+      this.closeCreateZoneDialog();
+      this.showMoreMenu = false;
+      this.nodeMenuId = "";
     },
     openDeviceDetail(device) {
-      this.showSortDialog = false
-      this.selectedDevice = device
-      this.activeDetailTab = 'basic'
-      this.showDeviceDetail = true
-      if (this.activeMachineTab === 'outdoor') {
-        this.relatedIndoors = this.getRelatedIndoors(device)
+      this.showSortDialog = false;
+      this.selectedDevice = device;
+      this.activeDetailTab = "basic";
+      this.showDeviceDetail = true;
+      if (this.activeMachineTab === "outdoor") {
+        this.relatedIndoors = this.getRelatedIndoors(device);
       }
     },
     getRelatedIndoors(outdoor) {
-      return this.indoorCards.filter(card => card.outdoorName === outdoor.name)
+      return this.indoorCards.filter(
+        (card) => card.outdoorName === outdoor.name
+      );
     },
     toggleRelatedSection() {
-      this.relatedSectionExpanded = !this.relatedSectionExpanded
+      this.relatedSectionExpanded = !this.relatedSectionExpanded;
     },
     openBatchControl() {
-      this.showBatchControl = true
-      this.resetBatchControlData()
+      this.showBatchControl = true;
+      this.resetBatchControlData();
     },
     closeBatchControl() {
-      this.showBatchControl = false
+      this.showBatchControl = false;
     },
     resetBatchControlData() {
       this.batchControlData = {
-        power: '',
-        mode: 'none',
+        power: "",
+        mode: "none",
         temperature: 26,
-        windMode: 'auto',
+        windMode: "auto",
         windLevel: 1,
-        onlyOn: 'none',
-        onlyOff: 'none',
-        modeLock: 'none',
-        windLock: 'none',
-        disableController: 'none'
-      }
+        onlyOn: "none",
+        onlyOff: "none",
+        modeLock: "none",
+        windLock: "none",
+        disableController: "none",
+      };
     },
     confirmBatchControl() {
-      this.$message.success('指令下发成功')
-      this.closeBatchControl()
+      this.$message.success("指令下发成功");
+      this.closeBatchControl();
     },
     openBatchDelete() {
-      this.showBatchDelete = true
+      this.showBatchDelete = true;
     },
     closeBatchDelete() {
-      this.showBatchDelete = false
+      this.showBatchDelete = false;
     },
     confirmBatchDelete() {
-      this.$message.success('批量删除成功')
-      this.closeBatchDelete()
-      this.selectedDevices = []
+      this.$message.success("批量删除成功");
+      this.closeBatchDelete();
+      this.selectedDevices = [];
     },
     toggleAllDevices() {
       if (this.selectedDevices.length === this.currentCards.length) {
-        this.selectedDevices = []
+        this.selectedDevices = [];
       } else {
-        this.selectedDevices = this.currentCards.map(card => card.id)
+        this.selectedDevices = this.currentCards.map((card) => card.id);
       }
     },
     isGroupSelected(group) {
-      return group.items.every(item => this.selectedDevices.includes(item.id))
+      return group.items.every((item) =>
+        this.selectedDevices.includes(item.id)
+      );
     },
     toggleGroupSelect(group) {
-      const allSelected = this.isGroupSelected(group)
-      group.items.forEach(item => {
-        const index = this.selectedDevices.indexOf(item.id)
+      const allSelected = this.isGroupSelected(group);
+      group.items.forEach((item) => {
+        const index = this.selectedDevices.indexOf(item.id);
         if (allSelected) {
           if (index > -1) {
-            this.selectedDevices.splice(index, 1)
+            this.selectedDevices.splice(index, 1);
           }
         } else {
           if (index === -1) {
-            this.selectedDevices.push(item.id)
+            this.selectedDevices.push(item.id);
           }
         }
-      })
+      });
     },
     isZoneItemSelected(group, item) {
-      return this.selectedDevices.includes(item.id)
+      return this.selectedDevices.includes(item.id);
     },
     toggleZoneItemSelect(group, item) {
-      const index = this.selectedDevices.indexOf(item.id)
+      const index = this.selectedDevices.indexOf(item.id);
       if (index > -1) {
-        this.selectedDevices.splice(index, 1)
+        this.selectedDevices.splice(index, 1);
       } else {
-        this.selectedDevices.push(item.id)
+        this.selectedDevices.push(item.id);
       }
     },
+    handleCurrentZoneNodeClick(data) {
+      this.selectZone(data.id);
+    },
+    handleCurrentZoneNodeExpand(data) {
+      if (data.type === "group" && data.raw) {
+        data.raw.expanded = true;
+      }
+    },
+    handleCurrentZoneNodeCollapse(data) {
+      if (data.type === "group" && data.raw) {
+        data.raw.expanded = false;
+      }
+    },
+    isCurrentZoneNodeSelected(data) {
+      if (data.type === "group") {
+        return this.isGroupSelected(data.raw);
+      }
+      return this.isZoneItemSelected(data.parent, data.raw);
+    },
+    toggleCurrentZoneNodeSelect(data) {
+      if (data.type === "group") {
+        this.toggleGroupSelect(data.raw);
+        return;
+      }
+      this.toggleZoneItemSelect(data.parent, data.raw);
+    },
     isDeviceSelected(deviceId) {
-      return this.selectedDevices.includes(deviceId)
+      return this.selectedDevices.includes(deviceId);
     },
     toggleDeviceSelect(deviceId) {
-      const index = this.selectedDevices.indexOf(deviceId)
+      const index = this.selectedDevices.indexOf(deviceId);
       if (index > -1) {
-        this.selectedDevices.splice(index, 1)
+        this.selectedDevices.splice(index, 1);
       } else {
-        this.selectedDevices.push(deviceId)
+        this.selectedDevices.push(deviceId);
       }
     },
     closeDeviceDetail() {
-      this.showDeviceDetail = false
-      this.selectedDevice = null
-      this.editingName = false
+      this.showDeviceDetail = false;
+      this.selectedDevice = null;
+      this.editingName = false;
     },
     resetPagination() {
-      this.currentPage = 1
+      this.currentPage = 1;
     },
     changePage(page) {
-      if (page < 1 || page > this.totalPages || page === this.currentPage) return
-      this.currentPage = page
+      if (page < 1 || page > this.totalPages || page === this.currentPage)
+        return;
+      this.currentPage = page;
     },
     prevPage() {
-      this.changePage(this.currentPage - 1)
+      this.changePage(this.currentPage - 1);
     },
     nextPage() {
-      this.changePage(this.currentPage + 1)
+      this.changePage(this.currentPage + 1);
     },
     resetFilters() {
-      this.filters.keyword = ''
-      this.filters.system = []
-      this.filters.runningStatus = []
-      this.filters.lockStatus = ''
-      this.filters.contractStatus = ''
-      this.filters.indoorModel = ''
-      this.filters.silentMode = ''
-      this.filters.outdoorMuteMode = ''
-      this.filters.outdoorContractStatus = ''
-      this.filters.outdoorDeviceModel = ''
-      this.filters.modePriority = ''
-      this.filters.billingStatus = ''
-      this.filters.pvType = ''
-      this.system = []
-      this.expandedFilters = false
-      this.resetPagination()
+      this.filters.keyword = "";
+      this.filters.system = [];
+      this.filters.runningStatus = [];
+      this.filters.lockStatus = "";
+      this.filters.contractStatus = "";
+      this.filters.indoorModel = "";
+      this.filters.silentMode = "";
+      this.filters.outdoorMuteMode = "";
+      this.filters.outdoorContractStatus = "";
+      this.filters.outdoorDeviceModel = "";
+      this.filters.modePriority = "";
+      this.filters.billingStatus = "";
+      this.filters.pvType = "";
+      this.system = [];
+      this.expandedFilters = false;
+      this.resetPagination();
     },
     refreshData() {
-      this.$message.info('正在刷新数据...')
+      this.$message.info("正在刷新数据...");
       setTimeout(() => {
         this.indoorCards = [
-          { id: 'c1', name: 'IDU-00627-2-20 Recoo-首尔', metricA: '-°C / 负 -°C', metricB: '-% / 负 -%', metricC: '', contract: '合约中', status: '离线', extra: '' },
-          { id: 'c2', name: '1号系统15', metricA: '-°C / 负 -°C', metricB: '-% / 负 -%', metricC: '', contract: '合约中', status: '离线', extra: '' },
-          { id: 'c3', name: 'IDU-00627-2-16 赣哥 朱钰', metricA: '-°C / 负 -°C', metricB: '-% / 负 -%', metricC: '', contract: '合约中', status: '离线', extra: '' },
-          { id: 'c4', name: 'IDU-00627-2-21财务隔壁', metricA: '-°C / 负 -°C', metricB: '-% / 负 -%', metricC: '', contract: '合约中', status: '离线', extra: '' },
-          { id: 'c5', name: '1号系统39', metricA: '-°C / 负 -°C', metricB: '-% / 负 -%', metricC: '', contract: '合约中', status: '离线', extra: '' },
-          { id: 'c6', name: '1号系统40', metricA: '-°C / 负 -°C', metricB: '-% / 负 -%', metricC: '', contract: '合约中', status: '离线', extra: '' },
-          { id: 'c7', name: 'IDU-00627-2-22 档案室-赵姐', metricA: '-°C / 负 -°C', metricB: '-% / 负 -%', metricC: '', contract: '合约中', status: '离线', extra: '' },
-          { id: 'c8', name: 'IDU-00627-2-14华芯', metricA: '-°C / 负 -°C', metricB: '-% / 负 -%', metricC: '', contract: '合约中', status: '离线', extra: '' }
-        ]
+          {
+            id: "c1",
+            name: "IDU-00627-2-20 Recoo-首尔",
+            metricA: "-°C / 负 -°C",
+            metricB: "-% / 负 -%",
+            metricC: "",
+            contract: "合约中",
+            status: "离线",
+            extra: "",
+          },
+          {
+            id: "c2",
+            name: "1号系统15",
+            metricA: "-°C / 负 -°C",
+            metricB: "-% / 负 -%",
+            metricC: "",
+            contract: "合约中",
+            status: "离线",
+            extra: "",
+          },
+          {
+            id: "c3",
+            name: "IDU-00627-2-16 赣哥 朱钰",
+            metricA: "-°C / 负 -°C",
+            metricB: "-% / 负 -%",
+            metricC: "",
+            contract: "合约中",
+            status: "离线",
+            extra: "",
+          },
+          {
+            id: "c4",
+            name: "IDU-00627-2-21财务隔壁",
+            metricA: "-°C / 负 -°C",
+            metricB: "-% / 负 -%",
+            metricC: "",
+            contract: "合约中",
+            status: "离线",
+            extra: "",
+          },
+          {
+            id: "c5",
+            name: "1号系统39",
+            metricA: "-°C / 负 -°C",
+            metricB: "-% / 负 -%",
+            metricC: "",
+            contract: "合约中",
+            status: "离线",
+            extra: "",
+          },
+          {
+            id: "c6",
+            name: "1号系统40",
+            metricA: "-°C / 负 -°C",
+            metricB: "-% / 负 -%",
+            metricC: "",
+            contract: "合约中",
+            status: "离线",
+            extra: "",
+          },
+          {
+            id: "c7",
+            name: "IDU-00627-2-22 档案室-赵姐",
+            metricA: "-°C / 负 -°C",
+            metricB: "-% / 负 -%",
+            metricC: "",
+            contract: "合约中",
+            status: "离线",
+            extra: "",
+          },
+          {
+            id: "c8",
+            name: "IDU-00627-2-14华芯",
+            metricA: "-°C / 负 -°C",
+            metricB: "-% / 负 -%",
+            metricC: "",
+            contract: "合约中",
+            status: "离线",
+            extra: "",
+          },
+        ];
         this.outdoorCards = [
-          { id: 'o1', name: 'ODU-00627-2-129', metricA: '- 摄氏度', metricB: '', metricC: '', contract: '合约中', status: '离线', extra: '内机台数: 11', acPower: '147236.70kWh', dcPower: '-' },
-          { id: 'o2', name: 'ODU-00627-2-130', metricA: '- 摄氏度', metricB: '', metricC: '', contract: '合约中', status: '离线', extra: '内机台数: 11', acPower: '147236.70kWh', dcPower: '-' }
-        ]
+          {
+            id: "o1",
+            name: "ODU-00627-2-129",
+            metricA: "- 摄氏度",
+            metricB: "",
+            metricC: "",
+            contract: "合约中",
+            status: "离线",
+            extra: "内机台数: 11",
+            acPower: "147236.70kWh",
+            dcPower: "-",
+          },
+          {
+            id: "o2",
+            name: "ODU-00627-2-130",
+            metricA: "- 摄氏度",
+            metricB: "",
+            metricC: "",
+            contract: "合约中",
+            status: "离线",
+            extra: "内机台数: 11",
+            acPower: "147236.70kWh",
+            dcPower: "-",
+          },
+        ];
         this.indoorEditCards = [
-          { id: 'e1', name: 'IDU-00627-2-20 Recoo-首尔', currentTemp: '20°C', targetTemp: '29°C', contract: '合约中', status: '离线' },
-          { id: 'e2', name: 'IDU-00627-2-21财务隔壁', currentTemp: '26°C', targetTemp: '29°C', contract: '合约中', status: '离线' },
-          { id: 'e3', name: 'IDU-00627-2-1机房', currentTemp: '17°C', targetTemp: '28°C', contract: '合约中', status: '离线' },
-          { id: 'e4', name: 'IDU-00625-0-9 零食角', currentTemp: '27°C', targetTemp: '27°C', contract: '合约中', status: '离线' },
-          { id: 'e5', name: 'IDU-00625-0-10 零食角隔壁', currentTemp: '27°C', targetTemp: '28°C', contract: '合约中', status: '离线' },
-          { id: 'e6', name: 'IDU-00625-0-12 慕尼黑', currentTemp: '28°C', targetTemp: '28°C', contract: '合约中', status: '离线' },
-          { id: 'e7', name: 'IDU-00627-2-14华芯', currentTemp: '--°C', targetTemp: '28°C', contract: '合约中', status: '离线' },
-          { id: 'e8', name: 'IDU-00627-2-15 林宏 Tim Jack', currentTemp: '22°C', targetTemp: '28°C', contract: '合约中', status: '离线' }
-        ]
+          {
+            id: "e1",
+            name: "IDU-00627-2-20 Recoo-首尔",
+            currentTemp: "20°C",
+            targetTemp: "29°C",
+            contract: "合约中",
+            status: "离线",
+          },
+          {
+            id: "e2",
+            name: "IDU-00627-2-21财务隔壁",
+            currentTemp: "26°C",
+            targetTemp: "29°C",
+            contract: "合约中",
+            status: "离线",
+          },
+          {
+            id: "e3",
+            name: "IDU-00627-2-1机房",
+            currentTemp: "17°C",
+            targetTemp: "28°C",
+            contract: "合约中",
+            status: "离线",
+          },
+          {
+            id: "e4",
+            name: "IDU-00625-0-9 零食角",
+            currentTemp: "27°C",
+            targetTemp: "27°C",
+            contract: "合约中",
+            status: "离线",
+          },
+          {
+            id: "e5",
+            name: "IDU-00625-0-10 零食角隔壁",
+            currentTemp: "27°C",
+            targetTemp: "28°C",
+            contract: "合约中",
+            status: "离线",
+          },
+          {
+            id: "e6",
+            name: "IDU-00625-0-12 慕尼黑",
+            currentTemp: "28°C",
+            targetTemp: "28°C",
+            contract: "合约中",
+            status: "离线",
+          },
+          {
+            id: "e7",
+            name: "IDU-00627-2-14华芯",
+            currentTemp: "--°C",
+            targetTemp: "28°C",
+            contract: "合约中",
+            status: "离线",
+          },
+          {
+            id: "e8",
+            name: "IDU-00627-2-15 林宏 Tim Jack",
+            currentTemp: "22°C",
+            targetTemp: "28°C",
+            contract: "合约中",
+            status: "离线",
+          },
+        ];
         this.indoorTableRows = [
-          { id: 't1', code: 'IDU-00627-2-20', name: 'IDU-00627-2-20 Recoo-首尔', status: '离线', address: '20', system: '0000CC311178CCM...', attachment: 'v4/v4+内机', model: '--', mode: '制冷' },
-          { id: 't2', code: 'IDU-00627-2-19', name: '1号系统15', status: '离线', address: '19', system: '0000CC311178CCM...', attachment: 'v4/v4+内机', model: '--', mode: '制热' }
-        ]
+          {
+            id: "t1",
+            code: "IDU-00627-2-20",
+            name: "IDU-00627-2-20 Recoo-首尔",
+            status: "离线",
+            address: "20",
+            system: "0000CC311178CCM...",
+            attachment: "v4/v4+内机",
+            model: "--",
+            mode: "制冷",
+          },
+          {
+            id: "t2",
+            code: "IDU-00627-2-19",
+            name: "1号系统15",
+            status: "离线",
+            address: "19",
+            system: "0000CC311178CCM...",
+            attachment: "v4/v4+内机",
+            model: "--",
+            mode: "制热",
+          },
+        ];
         this.outdoorTableRows = [
-          { id: 'ot1', code: 'ODU-00625-1-129', name: 'ODU-00625-1-129', status: '离线', address: '0000CC311178CCM...', system: '大多联', attachment: '--', model: '自动优先' },
-          { id: 'ot2', code: 'ODU-00625-1-130', name: 'ODU-00625-1-130', status: '离线', address: '0000CC311178CCM...', system: '大多联', attachment: '--', model: '自动优先' },
-          { id: 'ot3', code: 'ODU-00627-2-129', name: 'ODU-00627-2-129', status: '离线', address: '0000CC311178CCM...', system: '大多联', attachment: '--', model: '自动优先' },
-          { id: 'ot4', code: 'ODU-00627-2-130', name: 'ODU-00627-2-130', status: '离线', address: '0000CC311178CCM...', system: '大多联', attachment: '--', model: '自动优先' }
-        ]
-        this.resetPagination()
-        this.$message.success('数据刷新成功')
-      }, 500)
+          {
+            id: "ot1",
+            code: "ODU-00625-1-129",
+            name: "ODU-00625-1-129",
+            status: "离线",
+            address: "0000CC311178CCM...",
+            system: "大多联",
+            attachment: "--",
+            model: "自动优先",
+          },
+          {
+            id: "ot2",
+            code: "ODU-00625-1-130",
+            name: "ODU-00625-1-130",
+            status: "离线",
+            address: "0000CC311178CCM...",
+            system: "大多联",
+            attachment: "--",
+            model: "自动优先",
+          },
+          {
+            id: "ot3",
+            code: "ODU-00627-2-129",
+            name: "ODU-00627-2-129",
+            status: "离线",
+            address: "0000CC311178CCM...",
+            system: "大多联",
+            attachment: "--",
+            model: "自动优先",
+          },
+          {
+            id: "ot4",
+            code: "ODU-00627-2-130",
+            name: "ODU-00627-2-130",
+            status: "离线",
+            address: "0000CC311178CCM...",
+            system: "大多联",
+            attachment: "--",
+            model: "自动优先",
+          },
+        ];
+        this.resetPagination();
+        this.$message.success("数据刷新成功");
+      }, 500);
     },
     openEditName() {
-      this.editingName = true
-      this.editNameValue = this.selectedDevice.name
+      this.editingName = true;
+      this.editNameValue = this.selectedDevice.name;
     },
     cancelEditName() {
-      this.editingName = false
-      this.editNameValue = ''
+      this.editingName = false;
+      this.editNameValue = "";
     },
     confirmEditName() {
       if (this.editNameValue.trim()) {
-        this.selectedDevice.name = this.editNameValue.trim()
+        this.selectedDevice.name = this.editNameValue.trim();
       }
-      this.editingName = false
-      this.editNameValue = ''
+      this.editingName = false;
+      this.editNameValue = "";
     },
     selectSmartName(name) {
-      this.editNameValue = name
+      this.editNameValue = name;
     },
     openSortDialog() {
-      this.showSortDialog = true
-      this.showDeviceDetail = false
+      this.showSortDialog = true;
+      this.showDeviceDetail = false;
     },
     addSortCondition() {
-      this.sortConditions.push({ field: '', direction: 'asc' })
+      this.sortConditions.push({ field: "", direction: "asc" });
     },
     removeSortCondition(index) {
-      this.sortConditions.splice(index, 1)
+      this.sortConditions.splice(index, 1);
     },
     toggleSortDirection(index) {
-      this.sortConditions[index].direction = this.sortConditions[index].direction === 'asc' ? 'desc' : 'asc'
+      this.sortConditions[index].direction =
+        this.sortConditions[index].direction === "asc" ? "desc" : "asc";
     },
     getAvailableSortFields(currentIndex) {
       const usedFields = this.sortConditions
         .filter((_, i) => i !== currentIndex)
-        .map(item => item.field)
-        .filter(Boolean)
-      return this.sortFieldOptions.filter(opt => !usedFields.includes(opt.value))
+        .map((item) => item.field)
+        .filter(Boolean);
+      return this.sortFieldOptions.filter(
+        (opt) => !usedFields.includes(opt.value)
+      );
     },
     getSortDesc(field) {
-      const found = this.sortFieldOptions.find(opt => opt.value === field)
-      return found ? found.desc : ''
+      const found = this.sortFieldOptions.find((opt) => opt.value === field);
+      return found ? found.desc : "";
     },
-    onSortFieldChange(index) {
-    },
+    onSortFieldChange(index) { },
     confirmSort() {
-      this.showSortDialog = false
+      this.showSortDialog = false;
     },
     switchMachineTab(tab) {
-      this.activeMachineTab = tab
-      this.expandedFilters = false
-      this.resetPagination()
-      if (tab === 'indoor') {
-        this.viewMode = 'card'
-        this.system = []
-        this.filters.lockStatus = ''
-        this.filters.contractStatus = ''
-        this.filters.indoorModel = ''
-      } else if (tab === 'outdoor') {
-        this.viewMode = 'card'
-        this.system = []
-        this.filters.silentMode = ''
-        this.filters.outdoorContractStatus = ''
-        this.filters.outdoorModel = ''
-        this.filters.modePriority = ''
-        this.filters.billingStatus = ''
-        this.filters.pvType = ''
-        this.filters.runningStatus = []
+      this.activeMachineTab = tab;
+      this.expandedFilters = false;
+      this.resetPagination();
+      if (tab === "indoor") {
+        this.viewMode = "card";
+        this.system = [];
+        this.filters.lockStatus = "";
+        this.filters.contractStatus = "";
+        this.filters.indoorModel = "";
+      } else if (tab === "outdoor") {
+        this.viewMode = "card";
+        this.system = [];
+        this.filters.silentMode = "";
+        this.filters.outdoorContractStatus = "";
+        this.filters.outdoorModel = "";
+        this.filters.modePriority = "";
+        this.filters.billingStatus = "";
+        this.filters.pvType = "";
+        this.filters.runningStatus = [];
       }
-      this.currentSearchField = '设备名称'
-      this.zoneEditMode = false
-      this.showMoreMenu = false
-      this.nodeMenuId = ''
+      this.currentSearchField = "设备名称";
+      this.zoneEditMode = false;
+      this.showMoreMenu = false;
+      this.nodeMenuId = "";
     },
     toggleSidebar() {
-      this.sidebarCollapsed = !this.sidebarCollapsed
+      this.sidebarCollapsed = !this.sidebarCollapsed;
       if (this.sidebarCollapsed) {
-        this.contentShifted = true
+        this.contentShifted = true;
       } else {
-        this.contentShifted = false
+        this.contentShifted = false;
       }
     },
     selectZone(id) {
-      this.selectedZone = id
+      this.selectedZone = id;
     },
     handleCascaderChange(value) {
       if (!value || value.length === 0 || !value[0] || value[0].length === 0) {
-        this.indoorOptions.forEach(item => {
-          this.$set(item, 'disabled', false)
-        })
-        return
+        this.indoorOptions.forEach((item) => {
+          this.$set(item, "disabled", false);
+        });
+        return;
       }
-      const selectedFirstValue = value[0][0]
-      this.indoorOptions.forEach(item => {
+      const selectedFirstValue = value[0][0];
+      this.indoorOptions.forEach((item) => {
         if (item.value !== selectedFirstValue) {
-          this.$set(item, 'disabled', true)
+          this.$set(item, "disabled", true);
         } else {
-          this.$set(item, 'disabled', false)
+          this.$set(item, "disabled", false);
         }
-      })
+      });
     },
     selectSearchField(item) {
-      this.currentSearchField = item.label
-      this.showSearchDropdown = false
-      this.filters.keyword = ''
-      this.showSuggestions = false
+      this.currentSearchField = item.label;
+      this.showSearchDropdown = false;
+      this.filters.keyword = "";
+      this.showSuggestions = false;
     },
     handleSearchInput() {
       if (this.filters.keyword.length > 0) {
-        this.showSuggestions = true
-        this.suggestions = this.getMockSuggestions()
+        this.showSuggestions = true;
+        this.suggestions = this.getMockSuggestions();
       } else {
-        this.showSuggestions = false
+        this.showSuggestions = false;
       }
     },
     handleSearch() {
-      this.showSuggestions = false
+      this.showSuggestions = false;
       if (this.filters.keyword.length > 0) {
-        this.suggestions = this.getMockSuggestions()
+        this.suggestions = this.getMockSuggestions();
       }
     },
     selectSuggestion(item) {
-      this.filters.keyword = item
-      this.showSuggestions = false
+      this.filters.keyword = item;
+      this.showSuggestions = false;
     },
     getMockSuggestions() {
-      const keyword = this.filters.keyword.toLowerCase()
+      const keyword = this.filters.keyword.toLowerCase();
 
-      if (this.currentSearchField === '设备名称') {
+      if (this.currentSearchField === "设备名称") {
         return this.indoorCards
-          .filter(card => card.name.toLowerCase().includes(keyword))
-          .map(card => card.name)
+          .filter((card) => card.name.toLowerCase().includes(keyword))
+          .map((card) => card.name);
       }
 
       const mockData = {
-        '室内机条码': ['0000CC311178CCM262C254100625902D', '0000CC311178CCM262C2541006270K1D'],
-        '室内机编号': ['IDU-001', 'IDU-002', 'IDU-003', 'IDU-004', 'IDU-005'],
-        '室外机条码': ['OUT-001-BAR', 'OUT-002-BAR', 'OUT-003-BAR'],
-        '室外机编码': ['OUT-001', 'OUT-002', 'OUT-003'],
-        '内机台数': ['1', '2', '3', '4', '5']
-      }
-      return mockData[this.currentSearchField] || []
+        室内机条码: [
+          "0000CC311178CCM262C254100625902D",
+          "0000CC311178CCM262C2541006270K1D",
+        ],
+        室内机编号: ["IDU-001", "IDU-002", "IDU-003", "IDU-004", "IDU-005"],
+        室外机条码: ["OUT-001-BAR", "OUT-002-BAR", "OUT-003-BAR"],
+        室外机编码: ["OUT-001", "OUT-002", "OUT-003"],
+        内机台数: ["1", "2", "3", "4", "5"],
+      };
+      return mockData[this.currentSearchField] || [];
     },
     enterZoneEditMode() {
-      this.zoneEditMode = true
-      this.showMoreMenu = false
-      this.nodeMenuId = ''
-      this.editableZoneGroups = []
-      this.selectedEditZone = ''
+      this.zoneEditMode = true;
+      this.showMoreMenu = false;
+      this.nodeMenuId = "";
+      this.editableZoneGroups = [];
+      this.selectedEditZone = "";
     },
     exitZoneEditMode() {
-      this.zoneEditMode = false
-      this.showMoreMenu = false
-      this.nodeMenuId = ''
+      this.zoneEditMode = false;
+      this.showMoreMenu = false;
+      this.nodeMenuId = "";
     },
     toggleMoreMenu() {
-      this.showMoreMenu = !this.showMoreMenu
-      this.nodeMenuId = ''
+      this.showMoreMenu = !this.showMoreMenu;
+      this.nodeMenuId = "";
     },
     handleZoneNodeClick(data) {
-      this.selectedEditZone = data.id
+      this.selectedEditZone = data.id;
     },
     toggleNodeMenu(id) {
-      this.currentZoneGroupId = id
-      this.selectedZoneType = ''
-      this.showCreateZoneDialog = true
+      this.currentZoneGroupId = id;
+      this.selectedZoneType = "";
+      this.showCreateZoneDialog = true;
     },
     createTopLevelZone() {
-      const nextIndex = this.editableZoneGroups.length + 1
+      const nextIndex = this.editableZoneGroups.length + 1;
       const newZone = {
         id: `zone-${Date.now()}`,
-        name: nextIndex === 1 ? '新节点8h1n' : `新建一级分区${nextIndex}`,
+        name: nextIndex === 1 ? "新节点8h1n" : `新建一级分区${nextIndex}`,
         count: 0,
         parentId: null,
-        level: 0
-      }
-      this.editableZoneGroups.push(newZone)
-      this.selectedEditZone = newZone.id
+        level: 0,
+      };
+      this.editableZoneGroups.push(newZone);
+      this.selectedEditZone = newZone.id;
     },
     closeCreateZoneDialog() {
-      this.showCreateZoneDialog = false
-      this.selectedZoneType = ''
-      this.currentZoneGroupId = ''
+      this.showCreateZoneDialog = false;
+      this.selectedZoneType = "";
+      this.currentZoneGroupId = "";
     },
     selectZoneType(type) {
-      this.selectedZoneType = type
+      this.selectedZoneType = type;
     },
     confirmCreateZone() {
       if (!this.selectedZoneType) {
-        this.$message.warning('请选择分区类型')
-        return
+        this.$message.warning("请选择分区类型");
+        return;
       }
-      if (this.selectedZoneType === 'peer') {
-        this.createPeerZone(this.currentZoneGroupId)
-      } else if (this.selectedZoneType === 'child') {
-        this.createChildZone(this.currentZoneGroupId)
+      if (this.selectedZoneType === "peer") {
+        this.createPeerZone(this.currentZoneGroupId);
+      } else if (this.selectedZoneType === "child") {
+        this.createChildZone(this.currentZoneGroupId);
       }
-      this.closeCreateZoneDialog()
-      this.$message.success('分区创建成功')
+      this.closeCreateZoneDialog();
+      this.$message.success("分区创建成功");
     },
     createPeerZone(groupId) {
-      const current = this.editableZoneGroups.find(item => item.id === groupId)
-      if (!current) return
+      const current = this.editableZoneGroups.find(
+        (item) => item.id === groupId
+      );
+      if (!current) return;
       this.editableZoneGroups.push({
         id: `zone-${Date.now()}`,
         name: `${current.name}-同级`,
         count: 0,
         parentId: current.parentId,
-        level: current.level
-      })
-      this.nodeMenuId = ''
+        level: current.level,
+      });
+      this.nodeMenuId = "";
     },
     createChildZone(groupId) {
-      const current = this.editableZoneGroups.find(item => item.id === groupId)
-      if (!current) return
+      const current = this.editableZoneGroups.find(
+        (item) => item.id === groupId
+      );
+      if (!current) return;
       this.editableZoneGroups.push({
         id: `zone-${Date.now()}`,
         name: `${current.name}-子级`,
         count: 0,
         parentId: current.id,
-        level: current.level + 1
-      })
-      this.nodeMenuId = ''
+        level: current.level + 1,
+      });
+      this.nodeMenuId = "";
     },
     openImportDialog() {
-      this.showImportDialog = true
-      this.showGuideDialog = false
-      this.showSmartNamingDialog = false
-      this.showMoreMenu = false
+      this.showImportDialog = true;
+      this.showGuideDialog = false;
+      this.showSmartNamingDialog = false;
+      this.showMoreMenu = false;
     },
     openGuideDialog() {
-      this.showGuideDialog = true
-      this.showImportDialog = false
-      this.showSmartNamingDialog = false
-      this.showMoreMenu = false
+      this.showGuideDialog = true;
+      this.showImportDialog = false;
+      this.showSmartNamingDialog = false;
+      this.showMoreMenu = false;
     },
     openSmartNamingDialog() {
-      this.showSmartNamingDialog = true
-      this.showImportDialog = false
-      this.showGuideDialog = false
-      this.showMoreMenu = false
+      this.showSmartNamingDialog = true;
+      this.showImportDialog = false;
+      this.showGuideDialog = false;
+      this.showMoreMenu = false;
     },
     closeAllDialogs() {
-      this.showImportDialog = false
-      this.showGuideDialog = false
-      this.showSmartNamingDialog = false
-      this.showSortDialog = false
-      this.showDeviceDetail = false
+      this.showImportDialog = false;
+      this.showGuideDialog = false;
+      this.showSmartNamingDialog = false;
+      this.showSortDialog = false;
+      this.showDeviceDetail = false;
     },
     confirmSmartNaming() {
-      this.showSmartNamingDialog = false
-    }
-  }
-}
+      this.showSmartNamingDialog = false;
+    },
+  },
+};
 </script>
 
 <style lang="scss" scoped>
@@ -1848,8 +2657,6 @@ export default {
   display: none;
 }
 
-
-
 .main-panel {
   flex: 1;
 }
@@ -1876,7 +2683,7 @@ export default {
   }
 
   &.active::after {
-    content: '';
+    content: "";
     position: absolute;
     left: 0;
     right: 0;
@@ -1949,6 +2756,16 @@ export default {
   overflow-y: auto;
   overflow-x: hidden;
   padding-right: 12px;
+}
+
+::v-deep .el-tree-node__content {
+  height: 34px;
+  padding-right: 80px;
+}
+
+.zone-tree-node.item.active {
+  color: #1962ff;
+  background-color: #e8f3ff;
 }
 
 .zone-edit-tree .el-tree-node__content {
@@ -2056,8 +2873,6 @@ export default {
   font-weight: 600;
 }
 
-
-
 .icon-btn {
   border: 0;
   background: transparent;
@@ -2074,6 +2889,11 @@ export default {
   border-radius: 4px;
   background: #fff;
   box-shadow: 0 6px 16px rgba(25, 46, 86, 0.18);
+}
+
+.zone-tree-node.group {
+  color: #2b3448 !important;
+  font-weight: 600 !important;
 }
 
 .dropdown-menu button {
@@ -2155,8 +2975,8 @@ export default {
 .toolbar-header {
   display: flex;
   align-items: center;
+  min-height: 68px;
   justify-content: space-between;
-  min-height: 60px;
 }
 
 .edit-mode-title {
@@ -2412,8 +3232,6 @@ export default {
   line-height: 32px !important;
 }
 
-
-
 .filter-box {
   display: grid;
   grid-template-columns: auto 1fr;
@@ -2593,7 +3411,7 @@ export default {
 
   .check-all-checkbox {
     width: 24px;
-    height: 24px
+    height: 24px;
   }
 }
 
@@ -2814,8 +3632,6 @@ export default {
   }
 }
 
-
-
 .table-shell {
   border: 1px solid #eef2f7;
   border-bottom: 0;
@@ -2848,12 +3664,6 @@ export default {
   margin-right: 6px;
   border-radius: 50%;
   background: #d9d9d9;
-}
-
-.operate-links a {
-  margin-right: 12px;
-  color: #2d63ff;
-  text-decoration: none;
 }
 
 .pagination-bar {
@@ -2991,7 +3801,7 @@ export default {
 }
 
 .modal-header span::before {
-  content: '';
+  content: "";
   position: absolute;
   left: 0;
   top: 3px;
@@ -3020,7 +3830,6 @@ export default {
   color: #2d63ff;
   text-decoration: none;
 }
-
 
 .upload-row {
   display: flex;
@@ -3168,7 +3977,7 @@ export default {
   }
 
   .el-select .el-input.is-focus .el-input__inner {
-    border-color: #409EFF;
+    border-color: #409eff;
     width: 385.72px;
     height: 32px;
   }
@@ -3210,7 +4019,7 @@ export default {
 }
 
 .detail-tab.active::after {
-  content: '';
+  content: "";
   position: absolute;
   bottom: -17px;
   left: 0;
@@ -3744,7 +4553,8 @@ export default {
   min-height: calc(100vh - 84px);
   background: #f5f7fb;
   color: #14253f;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", Arial, sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
+    "Hiragino Sans GB", "Microsoft YaHei", Arial, sans-serif;
 }
 
 .top-tabs {
@@ -3761,7 +4571,7 @@ export default {
   background: transparent;
   color: #273855;
   font-size: 16px;
-  transition: color .2s ease, background .2s ease;
+  transition: color 0.2s ease, background 0.2s ease;
 
   &:hover {
     color: #0f62fe;
@@ -3931,12 +4741,7 @@ export default {
   border-left: 0;
   color: #557099;
   font-size: 22px;
-  box-shadow: 0 2px 8px rgba(20, 37, 63, .08);
-}
-
-.toolbar-header {
-  min-height: 68px;
-  justify-content: flex-end;
+  box-shadow: 0 2px 8px rgba(20, 37, 63, 0.08);
 }
 
 .toolbar-view-switch {
@@ -3960,13 +4765,15 @@ export default {
 }
 
 .filter-row {
-  grid-template-columns: minmax(420px, 1.55fr) minmax(300px, 1fr) minmax(300px, 1fr) auto;
+  grid-template-columns: minmax(420px, 1.55fr) minmax(300px, 1fr) minmax(300px,
+      1fr) auto;
   gap: 22px 20px;
   align-items: center;
 }
 
 .expanded-row {
-  grid-template-columns: minmax(420px, 1.55fr) minmax(300px, 1fr) minmax(300px, 1fr) auto;
+  grid-template-columns: minmax(420px, 1.55fr) minmax(300px, 1fr) minmax(300px,
+      1fr) auto;
 }
 
 .filter-box {
@@ -4029,7 +4836,7 @@ export default {
 .suggestion-list {
   border-color: #e3e8f2;
   border-radius: 0 0 4px 4px;
-  box-shadow: 0 8px 20px rgba(20, 37, 63, .12);
+  box-shadow: 0 8px 20px rgba(20, 37, 63, 0.12);
 }
 
 .combo-dropdown {
@@ -4116,7 +4923,8 @@ export default {
 }
 
 .outdoor-filter-rows .filter-row {
-  grid-template-columns: minmax(420px, 1.55fr) minmax(300px, 1fr) minmax(300px, 1fr) auto;
+  grid-template-columns: minmax(420px, 1.55fr) minmax(300px, 1fr) minmax(300px,
+      1fr) auto;
   gap: 22px 20px;
 }
 
@@ -4137,7 +4945,7 @@ export default {
   padding: 0 18px;
   border-radius: 4px;
   font-size: 16px;
-  transition: background .2s ease, color .2s ease, box-shadow .2s ease;
+  transition: background 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
 
   &.secondary {
     background: #e8f3ff;
@@ -4151,7 +4959,7 @@ export default {
   &.primary {
     background: #0f62fe;
     color: #fff;
-    box-shadow: 0 2px 6px rgba(15, 98, 254, .18);
+    box-shadow: 0 2px 6px rgba(15, 98, 254, 0.18);
   }
 
   &.primary:hover {
@@ -4196,7 +5004,7 @@ export default {
 }
 
 .device-table tbody tr {
-  transition: background .2s ease;
+  transition: background 0.2s ease;
 }
 
 .device-table tbody tr:hover,
@@ -4215,7 +5023,7 @@ export default {
 .operate-links a {
   margin-right: 14px;
   color: #0f62fe;
-  font-size: 16px;
+  font-size: 14px;
 }
 
 .pagination-bar {
@@ -4255,16 +5063,15 @@ export default {
 .device-card {
   min-height: 132px;
   padding: 12px 9px 10px;
-  ;
   border-color: #e5eaf3;
   border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(20, 37, 63, .04);
-  transition: border .2s ease, box-shadow .2s ease, transform .2s ease;
+  box-shadow: 0 2px 8px rgba(20, 37, 63, 0.04);
+  transition: border 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
 }
 
 .device-card:hover {
   border-color: #b9cef5;
-  box-shadow: 0 8px 20px rgba(20, 37, 63, .08);
+  box-shadow: 0 8px 20px rgba(20, 37, 63, 0.08);
   transform: translateY(-1px);
 }
 
@@ -4307,7 +5114,8 @@ export default {
   .filter-row,
   .expanded-row,
   .outdoor-filter-rows .filter-row {
-    grid-template-columns: minmax(360px, 1.2fr) minmax(260px, 1fr) minmax(260px, 1fr) auto;
+    grid-template-columns: minmax(360px, 1.2fr) minmax(260px, 1fr) minmax(260px,
+        1fr) auto;
   }
 
   .sidebar,

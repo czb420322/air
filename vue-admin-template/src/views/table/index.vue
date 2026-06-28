@@ -1,13 +1,8 @@
 <template>
   <div class="device-page">
     <div class="top-tabs">
-      <button
-        v-for="tab in topTabs"
-        :key="tab.key"
-        type="button"
-        :class="['top-tab', { active: activeTopTab === tab.key }]"
-        @click="activeTopTab = tab.key"
-      >
+      <button v-for="tab in topTabs" :key="tab.key" type="button"
+        :class="['top-tab', { active: activeTopTab === tab.key }]" @click="activeTopTab = tab.key">
         {{ tab.label }}
       </button>
     </div>
@@ -15,13 +10,8 @@
     <div class="content-shell">
       <aside :class="['sidebar', { editing: zoneEditMode }]">
         <div class="machine-switch">
-          <button
-            v-for="tab in machineTabs"
-            :key="tab.key"
-            type="button"
-            :class="['machine-tab', { active: activeMachineTab === tab.key }]"
-            @click="switchMachineTab(tab.key)"
-          >
+          <button v-for="tab in machineTabs" :key="tab.key" type="button"
+            :class="['machine-tab', { active: activeMachineTab === tab.key }]" @click="switchMachineTab(tab.key)">
             {{ tab.label }}
           </button>
         </div>
@@ -39,12 +29,9 @@
           </div>
 
           <div class="zone-edit-tree">
-            <div
-              v-for="group in editableZoneGroups"
-              :key="group.id"
+            <div v-for="group in editableZoneGroups" :key="group.id"
               :class="['editable-zone-item', { active: selectedEditZone === group.id }]"
-              @click="selectedEditZone = group.id"
-            >
+              @click="selectedEditZone = group.id">
               <span class="editable-zone-name">{{ group.name }} ({{ group.count }})</span>
               <div class="editable-zone-actions">
                 <button type="button" class="icon-btn" @click.stop="toggleNodeMenu(group.id)">+</button>
@@ -81,15 +68,8 @@
             </div>
 
             <div class="zone-tree">
-              <div
-                v-for="group in currentZoneGroups"
-                :key="group.id"
-                class="zone-group"
-              >
-                <div
-                  :class="['zone-group-title', { active: selectedZone === group.id }]"
-                  @click="selectZone(group.id)"
-                >
+              <div v-for="group in currentZoneGroups" :key="group.id" class="zone-group">
+                <div :class="['zone-group-title', { active: selectedZone === group.id }]" @click="selectZone(group.id)">
                   <div class="zone-group-main">
                     <span class="caret">{{ group.expanded ? '▼' : '▶' }}</span>
                     <span>{{ group.name }}（{{ group.items.length }}）</span>
@@ -98,24 +78,15 @@
                 </div>
 
                 <div v-if="group.expanded" class="zone-items">
-                  <div
-                    v-for="item in group.items"
-                    :key="item.id"
-                    :class="['zone-item', { active: selectedZone === item.id }]"
-                    @click="selectZone(item.id)"
-                  >
+                  <div v-for="item in group.items" :key="item.id"
+                    :class="['zone-item', { active: selectedZone === item.id }]" @click="selectZone(item.id)">
                     <span>{{ item.label }}</span>
                   </div>
                 </div>
               </div>
             </div>
 
-            <button
-              v-if="activeMachineTab === 'indoor'"
-              type="button"
-              class="edit-zone-btn"
-              @click="enterZoneEditMode"
-            >
+            <button v-if="activeMachineTab === 'indoor'" type="button" class="edit-zone-btn" @click="enterZoneEditMode">
               编辑分区
             </button>
           </div>
@@ -128,38 +99,24 @@
             <div class="operation-log-filters">
               <div class="operation-filter-item time-item">
                 <span class="operation-filter-label">操作时间</span>
-                <el-date-picker
-                  v-model="operationLogDateRange"
-                  type="daterange"
-                  range-separator="→"
-                  start-placeholder="开始日期"
-                  end-placeholder="结束日期"
-                  value-format="yyyy-MM-dd"
-                  class="operation-date-picker"
-                />
+                <el-date-picker v-model="operationLogDateRange" type="daterange" range-separator="→"
+                  start-placeholder="开始日期" end-placeholder="结束日期" value-format="yyyy-MM-dd"
+                  class="operation-date-picker" />
               </div>
 
               <div class="operation-filter-item">
                 <span class="operation-filter-label">操作类型</span>
                 <el-select v-model="selectedOperationType" placeholder="请选择" class="operation-select">
-                  <el-option
-                    v-for="item in operationTypeOptions"
-                    :key="item.value"
-                    :label="item.label"
-                    :value="item.value"
-                  />
+                  <el-option v-for="item in operationTypeOptions" :key="item.value" :label="item.label"
+                    :value="item.value" />
                 </el-select>
               </div>
 
               <div class="operation-filter-item">
                 <span class="operation-filter-label">操作模块</span>
                 <el-select v-model="selectedOperationModule" placeholder="请选择" class="operation-select">
-                  <el-option
-                    v-for="item in operationModuleOptions"
-                    :key="item.value"
-                    :label="item.label"
-                    :value="item.value"
-                  />
+                  <el-option v-for="item in operationModuleOptions" :key="item.value" :label="item.label"
+                    :value="item.value" />
                 </el-select>
               </div>
 
@@ -206,143 +163,145 @@
         </template>
 
         <template v-else>
-        <div class="toolbar-header">
-          <div v-if="zoneEditMode" class="edit-mode-title">
-            <span>未分区设备（0）</span>
-            <span class="mode-text">拓扑模式</span>
-          </div>
-
-          <button
-            v-if="zoneEditMode"
-            type="button"
-            class="exit-btn"
-            @click="exitZoneEditMode"
-          >
-            退出
-          </button>
-
-          <div v-else class="toolbar-view-switch">
-            <button
-              type="button"
-              :class="['view-btn', { active: viewMode === 'card' }]"
-              @click="viewMode = 'card'"
-            >
-              <i class="el-icon-s-grid"></i>
-            </button>
-            <button
-              type="button"
-              :class="['view-btn', { active: viewMode === 'table' }]"
-              @click="viewMode = 'table'"
-            >
-              <i class="el-icon-s-unfold"></i>
-            </button>
-          </div>
-        </div>
-
-        <div class="filter-panel">
-          <div class="filter-row">
-            <div class="search-combo">
-              <div class="combo-label">设备名称</div>
-              <input
-                v-model="filters.keyword"
-                type="text"
-                class="combo-input"
-                placeholder="请输入设备名称"
-              >
-              <i class="el-icon-search search-icon"></i>
+          <div class="toolbar-header">
+            <div v-if="zoneEditMode" class="edit-mode-title">
+              <span>未分区设备（0）</span>
+              <span class="mode-text">拓扑模式</span>
             </div>
 
-            <div class="filter-box">
-              <span class="filter-label">{{ activeMachineTab === 'indoor' ? '所属系统' : '所属系统' }}</span>
-              <div class="fake-select">
-                <span>请选择</span>
-                <i class="el-icon-arrow-down"></i>
+            <button v-if="zoneEditMode" type="button" class="exit-btn" @click="exitZoneEditMode">
+              退出
+            </button>
+
+            <div v-else class="toolbar-view-switch">
+              <button type="button" :class="['view-btn', { active: viewMode === 'card' }]" @click="viewMode = 'card'">
+                <i class="el-icon-s-grid"></i>
+              </button>
+              <button type="button" :class="['view-btn', { active: viewMode === 'table' }]" @click="viewMode = 'table'">
+                <i class="el-icon-s-unfold"></i>
+              </button>
+            </div>
+          </div>
+
+          <div class="filter-panel">
+            <div class="filter-row">
+              <div class="search-combo">
+                <div class="combo-label">设备名称</div>
+                <input v-model="filters.keyword" type="text" class="combo-input" placeholder="请输入设备名称">
+                <i class="el-icon-search search-icon"></i>
               </div>
-            </div>
 
-            <div class="filter-box">
-              <span class="filter-label">{{ activeMachineTab === 'indoor' ? '实时状态' : '运行状态' }}</span>
-              <div class="fake-select">
-                <span>请选择</span>
-                <i class="el-icon-arrow-down"></i>
-              </div>
-            </div>
-
-            <button
-              type="button"
-              class="expand-link"
-              @click="expandedFilters = !expandedFilters"
-            >
-              {{ expandedFilters ? '收起' : '展开' }}
-              <i :class="expandedFilters ? 'el-icon-arrow-up' : 'el-icon-arrow-down'"></i>
-            </button>
-          </div>
-        </div>
-
-        <div v-if="zoneEditMode" class="edit-top-actions">
-          <label class="check-all">
-            <input type="checkbox">
-            全选（0/22）
-          </label>
-
-          <div class="edit-mode-actions">
-            <button type="button" class="action-btn secondary">刷新</button>
-            <button type="button" class="action-btn primary">批量删除</button>
-            <button type="button" class="action-btn secondary">批量重命名</button>
-          </div>
-        </div>
-
-        <div v-else class="action-row">
-          <div class="action-spacer"></div>
-          <div class="actions">
-            <button
-              v-if="activeMachineTab === 'indoor' && viewMode === 'card'"
-              type="button"
-              class="action-btn secondary"
-            >
-              排序配置
-            </button>
-            <button type="button" class="action-btn secondary">重置筛选</button>
-            <button type="button" class="action-btn secondary">刷新</button>
-            <button
-              v-if="activeMachineTab === 'outdoor'"
-              type="button"
-              class="action-btn primary"
-            >
-              批量删除
-            </button>
-            <button type="button" class="action-btn primary">批量控制</button>
-            <button
-              v-if="activeMachineTab === 'indoor' && viewMode === 'card'"
-              type="button"
-              class="action-btn primary wide"
-            >
-              下载全部设备二维码
-            </button>
-          </div>
-        </div>
-
-        <div v-if="zoneEditMode" class="edit-layout">
-          <div class="edit-transfer">
-            <button type="button" class="transfer-btn disabled">移出</button>
-            <button type="button" class="transfer-btn active">移入</button>
-          </div>
-
-          <div class="edit-card-grid">
-            <div v-for="item in indoorEditCards" :key="item.id" class="device-card edit-card">
-              <div class="card-title-row with-check">
-                <div class="card-title-wrap">
-                  <span class="card-icon">🌀</span>
-                  <input :value="item.name" class="rename-input">
+              <div class="filter-box">
+                <span class="filter-label">{{ activeMachineTab === 'indoor' ? '所属系统' : '所属系统' }}</span>
+                <div class="fake-select">
+                  <span>请选择</span>
+                  <i class="el-icon-arrow-down"></i>
                 </div>
-                <input type="checkbox">
+              </div>
+
+              <div class="filter-box">
+                <span class="filter-label">{{ activeMachineTab === 'indoor' ? '实时状态' : '运行状态' }}</span>
+                <div class="fake-select">
+                  <span>请选择</span>
+                  <i class="el-icon-arrow-down"></i>
+                </div>
+              </div>
+
+              <button type="button" class="expand-link" @click="expandedFilters = !expandedFilters">
+                {{ expandedFilters ? '收起' : '展开' }}
+                <i :class="expandedFilters ? 'el-icon-arrow-up' : 'el-icon-arrow-down'"></i>
+              </button>
+            </div>
+          </div>
+
+          <div v-if="zoneEditMode" class="edit-top-actions">
+            <label class="check-all">
+              <input type="checkbox">
+              全选（0/22）
+            </label>
+
+            <div class="edit-mode-actions">
+              <button type="button" class="action-btn secondary">刷新</button>
+              <button type="button" class="action-btn primary">批量删除</button>
+              <button type="button" class="action-btn secondary">批量重命名</button>
+            </div>
+          </div>
+
+          <div v-else class="action-row">
+            <div class="action-spacer"></div>
+            <div class="actions">
+              <button v-if="activeMachineTab === 'indoor' && viewMode === 'card'" type="button"
+                class="action-btn secondary">
+                排序配置
+              </button>
+              <button type="button" class="action-btn secondary">重置筛选</button>
+              <button type="button" class="action-btn secondary">刷新</button>
+              <button v-if="activeMachineTab === 'outdoor'" type="button" class="action-btn primary">
+                批量删除
+              </button>
+              <button type="button" class="action-btn primary">批量控制</button>
+              <button v-if="activeMachineTab === 'indoor' && viewMode === 'card'" type="button"
+                class="action-btn primary wide">
+                下载全部设备二维码
+              </button>
+            </div>
+          </div>
+
+          <div v-if="zoneEditMode" class="edit-layout">
+            <div class="edit-transfer">
+              <button type="button" class="transfer-btn disabled">移出</button>
+              <button type="button" class="transfer-btn active">移入</button>
+            </div>
+
+            <div class="edit-card-grid">
+              <div v-for="item in indoorEditCards" :key="item.id" class="device-card edit-card">
+                <div class="card-title-row with-check">
+                  <div class="card-title-wrap">
+                    <span class="card-icon">🌀</span>
+                    <input :value="item.name" class="rename-input">
+                  </div>
+                  <input type="checkbox">
+                </div>
+
+                <div class="card-body">
+                  <div class="temperature-row">
+                    <strong>{{ item.currentTemp }}</strong>
+                    <span>/</span>
+                    <span>{{ item.targetTemp }}</span>
+                  </div>
+
+                  <div class="card-footer">
+                    <div class="card-tags">
+                      <span>{{ item.contract }}</span>
+                      <span>|</span>
+                      <span>{{ item.status }}</span>
+                    </div>
+                    <i class="el-icon-close"></i>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div v-else-if="viewMode === 'card'" class="card-grid">
+            <div v-for="item in currentCards" :key="item.id" class="device-card">
+              <div class="card-title-row">
+                <div class="card-title-wrap">
+                  <span class="card-icon">{{ activeMachineTab === 'indoor' ? '🌀' : '▥' }}</span>
+                  <span class="card-title">{{ item.name }}</span>
+                </div>
+              </div>
+
+              <div v-if="activeMachineTab === 'outdoor'" class="outdoor-power">
+                <div>交流电表：{{ item.acPower }}</div>
+                <div>直流电表：{{ item.dcPower }}</div>
               </div>
 
               <div class="card-body">
-                <div class="temperature-row">
-                  <strong>{{ item.currentTemp }}</strong>
-                  <span>/</span>
-                  <span>{{ item.targetTemp }}</span>
+                <div class="card-metrics">
+                  <span>{{ item.metricA }}</span>
+                  <span>{{ item.metricB }}</span>
+                  <span>{{ item.metricC }}</span>
                 </div>
 
                 <div class="card-footer">
@@ -351,101 +310,68 @@
                     <span>|</span>
                     <span>{{ item.status }}</span>
                   </div>
-                  <i class="el-icon-close"></i>
+                  <div class="card-extra">
+                    <span v-if="item.extra">{{ item.extra }}</span>
+                    <i class="el-icon-close"></i>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
-        </div>
 
-        <div v-else-if="viewMode === 'card'" class="card-grid">
-          <div v-for="item in currentCards" :key="item.id" class="device-card">
-            <div class="card-title-row">
-              <div class="card-title-wrap">
-                <span class="card-icon">{{ activeMachineTab === 'indoor' ? '🌀' : '▥' }}</span>
-                <span class="card-title">{{ item.name }}</span>
-              </div>
-            </div>
+          <div v-else class="table-shell">
+            <table class="device-table">
+              <thead>
+                <tr>
+                  <th>{{ activeMachineTab === 'indoor' ? '室内机编号' : '室外机编号' }}</th>
+                  <th>设备名称</th>
+                  <th>运行状态</th>
+                  <th>{{ activeMachineTab === 'indoor' ? '设备地址' : '所属系统' }}</th>
+                  <th>{{ activeMachineTab === 'indoor' ? '系统' : '机型' }}</th>
+                  <th>{{ activeMachineTab === 'indoor' ? '附属舰' : '静音模式' }}</th>
+                  <th>{{ activeMachineTab === 'indoor' ? '内机型号' : '模式优先设置' }}</th>
+                  <th v-if="activeMachineTab === 'indoor'">模式</th>
+                  <th>操作</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="row in currentTableRows" :key="row.id">
+                  <td>{{ row.code }}</td>
+                  <td>{{ row.name }}</td>
+                  <td>
+                    <span class="status-dot"></span>
+                    {{ row.status }}
+                  </td>
+                  <td>{{ row.address }}</td>
+                  <td>{{ row.system }}</td>
+                  <td>{{ row.attachment }}</td>
+                  <td>{{ row.model }}</td>
+                  <td v-if="activeMachineTab === 'indoor'">{{ row.mode }}</td>
+                  <td class="operate-links">
+                    <a href="javascript:void(0)">控制</a>
+                    <a href="javascript:void(0)">编辑</a>
+                    <a v-if="activeTopTab === 'logs'" href="javascript:void(0)">日志</a>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
 
-            <div v-if="activeMachineTab === 'outdoor'" class="outdoor-power">
-              <div>交流电表：{{ item.acPower }}</div>
-              <div>直流电表：{{ item.dcPower }}</div>
-            </div>
-
-            <div class="card-body">
-              <div class="card-metrics">
-                <span>{{ item.metricA }}</span>
-                <span>{{ item.metricB }}</span>
-                <span>{{ item.metricC }}</span>
-              </div>
-
-              <div class="card-footer">
-                <div class="card-tags">
-                  <span>{{ item.contract }}</span>
-                  <span>|</span>
-                  <span>{{ item.status }}</span>
-                </div>
-                <div class="card-extra">
-                  <span v-if="item.extra">{{ item.extra }}</span>
-                  <i class="el-icon-close"></i>
-                </div>
+            <div class="pagination-bar">
+              <span>{{ currentPaginationText }}</span>
+              <div class="pagination-controls">
+                <button type="button" class="page-btn">‹</button>
+                <button type="button" class="page-btn active">1</button>
+                <button type="button" class="page-btn">2</button>
+                <button type="button" class="page-btn">›</button>
               </div>
             </div>
           </div>
-        </div>
-
-        <div v-else class="table-shell">
-          <table class="device-table">
-            <thead>
-              <tr>
-                <th>{{ activeMachineTab === 'indoor' ? '室内机编号' : '室外机编号' }}</th>
-                <th>设备名称</th>
-                <th>运行状态</th>
-                <th>{{ activeMachineTab === 'indoor' ? '设备地址' : '所属系统' }}</th>
-                <th>{{ activeMachineTab === 'indoor' ? '系统' : '机型' }}</th>
-                <th>{{ activeMachineTab === 'indoor' ? '附属舰' : '静音模式' }}</th>
-                <th>{{ activeMachineTab === 'indoor' ? '内机型号' : '模式优先设置' }}</th>
-                <th v-if="activeMachineTab === 'indoor'">模式</th>
-                <th>操作</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="row in currentTableRows" :key="row.id">
-                <td>{{ row.code }}</td>
-                <td>{{ row.name }}</td>
-                <td>
-                  <span class="status-dot"></span>
-                  {{ row.status }}
-                </td>
-                <td>{{ row.address }}</td>
-                <td>{{ row.system }}</td>
-                <td>{{ row.attachment }}</td>
-                <td>{{ row.model }}</td>
-                <td v-if="activeMachineTab === 'indoor'">{{ row.mode }}</td>
-                <td class="operate-links">
-                  <a href="javascript:void(0)">控制</a>
-                  <a href="javascript:void(0)">编辑</a>
-                  <a v-if="activeTopTab === 'logs'" href="javascript:void(0)">日志</a>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-
-          <div class="pagination-bar">
-            <span>{{ currentPaginationText }}</span>
-            <div class="pagination-controls">
-              <button type="button" class="page-btn">‹</button>
-              <button type="button" class="page-btn active">1</button>
-              <button type="button" class="page-btn">2</button>
-              <button type="button" class="page-btn">›</button>
-            </div>
-          </div>
-        </div>
         </template>
       </main>
     </div>
 
-    <div v-if="showImportDialog || showGuideDialog || showSmartNamingDialog" class="modal-mask" @click="closeAllDialogs">
+    <div v-if="showImportDialog || showGuideDialog || showSmartNamingDialog" class="modal-mask"
+      @click="closeAllDialogs">
       <div v-if="showImportDialog" class="modal-card import-modal" @click.stop>
         <div class="modal-header">
           <span>导入</span>
@@ -1495,9 +1421,9 @@ export default {
 }
 
 .operate-links a {
-  margin-right: 12px;
-  color: #2d63ff;
-  text-decoration: none;
+  margin-right: 14px;
+  color: #0f62fe;
+  font-size: 14px;
 }
 
 .pagination-bar {
@@ -1689,6 +1615,7 @@ export default {
 }
 
 @media (max-width: 1600px) {
+
   .card-grid,
   .edit-card-grid {
     grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -1717,6 +1644,7 @@ export default {
 }
 
 @media (max-width: 768px) {
+
   .card-grid,
   .edit-card-grid {
     grid-template-columns: 1fr;
