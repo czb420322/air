@@ -90,9 +90,15 @@
                     data.type,
                     { active: selectedZone === data.id },
                   ]">
-                    <input v-if="showBatchControl" type="checkbox" :checked="isCurrentZoneNodeSelected(data)"
-                      @click.stop="toggleCurrentZoneNodeSelect(data)" />
-                    <span class="zone-tree-label">{{ node.label }}</span>
+                    <span class="zone-tree-content">
+                      <input v-if="showBatchControl" type="checkbox" :checked="isCurrentZoneNodeSelected(data)"
+                        @click.stop="toggleCurrentZoneNodeSelect(data)" />
+                      <span class="zone-tree-label">{{ node.label }}</span>
+                    </span>
+                    <button v-if="activeMachineTab === 'outdoor' && data.type === 'item'" type="button"
+                      class="zone-tree-edit-btn" title="编辑" @click.stop="editOutdoorZoneNode(data)">
+                      <i class="el-icon-edit"></i>
+                    </button>
                   </span>
                 </el-tree>
               </div>
@@ -2031,6 +2037,30 @@ export default {
         return;
       }
       this.toggleZoneItemSelect(data.parent, data.raw);
+    },
+    editOutdoorZoneNode(data) {
+      if (!data || data.type !== "item" || !data.raw) return;
+      this.$prompt("请输入室外机名称", "编辑室外机", {
+        confirmButtonText: "确定",
+        cancelButtonText: "取消",
+        inputValue: data.raw.label,
+        inputPattern: /\S/,
+        inputErrorMessage: "名称不能为空",
+      })
+        .then(({ value }) => {
+          const nextName = value.trim();
+          data.raw.label = nextName;
+          const matchedCard = this.outdoorCards.find(
+            (card) => card.name === data.label || card.name === data.raw.label
+          );
+          const matchedRow = this.outdoorTableRows.find(
+            (row) => row.name === data.label || row.name === data.raw.label
+          );
+          if (matchedCard) matchedCard.name = nextName;
+          if (matchedRow) matchedRow.name = nextName;
+          this.$message.success("编辑成功");
+        })
+        .catch(() => { });
     },
     isDeviceSelected(deviceId) {
       return this.selectedDevices.includes(deviceId);
