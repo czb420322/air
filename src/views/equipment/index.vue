@@ -5204,6 +5204,7 @@ export default {
   margin-left: 20px;
   background: #fff;
   width: 440px;
+      box-shadow: -8px 0 6px 0 hsla(0, 0%, 90.2%, .5);
 }
 
 .batch-control-drawer {
