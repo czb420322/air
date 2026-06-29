@@ -9,21 +9,20 @@
         </h3>
       </div>
 
-      <el-form-item prop="username">
+      <el-form-item prop="username" class="form-item-clickable" @click.native="focusInput('username')">
         <span class="svg-container">
           <svg-icon icon-class="user" />
         </span>
-        <el-input ref="username" v-model="loginForm.username" placeholder="Username" name="username" type="text"
-          tabindex="1" auto-complete="on" />
+        <el-input ref="username" v-model="loginForm.username" placeholder="请输入用户名" name="username" type="text" />
       </el-form-item>
 
-      <el-form-item prop="password">
+      <el-form-item prop="password" class="form-item-clickable" @click.native="focusInput('password')">
         <span class="svg-container">
           <svg-icon icon-class="password" />
         </span>
         <el-input :key="passwordType" ref="password" v-model="loginForm.password" :type="passwordType"
-          placeholder="Password" name="password" tabindex="2" auto-complete="on" @keyup.enter.native="handleLogin" />
-        <span class="show-pwd" @click="showPwd">
+          placeholder="请输入密码" name="password" tabindex="2" @keyup.enter.native="handleLogin" />
+        <span class="show-pwd" @click.stop="showPwd">
           <svg-icon :icon-class="passwordType === 'password' ? 'eye' : 'eye-open'" />
         </span>
       </el-form-item>
@@ -87,8 +86,8 @@ export default {
     }
     return {
       loginForm: {
-        username: 'admin',
-        password: '111111'
+        username: '',
+        password: ''
       },
       registerForm: {
         username: '',
@@ -96,11 +95,11 @@ export default {
         confirmPassword: ''
       },
       loginRules: {
-        username: [{ required: true, trigger: 'blur', validator: validateUsername }],
+        username: [{ required: true, trigger: 'blur', }],
         password: [{ required: true, trigger: 'blur', validator: validatePassword }]
       },
       registerRules: {
-        username: [{ required: true, trigger: 'blur', validator: validateUsername }],
+        username: [{ required: true, trigger: 'blur', }],
         password: [{ required: true, trigger: 'blur', validator: validatePassword }],
         confirmPassword: [{ required: true, trigger: 'blur', validator: validateConfirmPassword }]
       },
@@ -120,6 +119,13 @@ export default {
     }
   },
   methods: {
+    focusInput(field) {
+      this.$nextTick(() => {
+        if (this.$refs[field]) {
+          this.$refs[field].focus()
+        }
+      })
+    },
     showPwd() {
       if (this.passwordType === 'password') {
         this.passwordType = ''
@@ -132,6 +138,7 @@ export default {
     },
     handleLogin() {
       this.$refs.loginForm.validate(valid => {
+        console.log("🚀 ~ valid:", valid)
         if (valid) {
           this.loading = true
           this.$store.dispatch('user/login', this.loginForm).then(() => {
@@ -203,7 +210,7 @@ $cursor: #fff;
 .login-container {
   .el-input {
     display: inline-block;
-    height: 47px;
+    height: 32px;
     width: 85%;
 
     input {
@@ -212,13 +219,13 @@ $cursor: #fff;
       -webkit-appearance: none;
       border-radius: 0px;
       padding: 12px 5px 12px 15px;
-      color: #000;
-      height: 47px;
-      caret-color: $cursor;
+      color: #333;
+      height: 32px;
+      caret-color: #333;
 
       &:-webkit-autofill {
-        box-shadow: 0 0 0px 1000px $bg inset !important;
-        -webkit-text-fill-color: $cursor !important;
+        box-shadow: 0 0 0px 1000px #fff inset !important;
+        -webkit-text-fill-color: #333 !important;
       }
     }
   }
@@ -232,7 +239,20 @@ $cursor: #fff;
     border: 1px solid #8e9ab4;
     border-radius: 4px;
     transition: all .3s;
+
+    &:hover {
+      border-color: #409EFF;
+    }
+
+    &.is-active,
+    &:focus-within {
+      border-color: #409EFF;
+      box-shadow: 0 0 8px rgba(64, 158, 255, 0.3);
+    }
   }
+
+
+
 
   .register-form {
     .el-input {
@@ -341,5 +361,9 @@ $light_gray: #eee;
     margin-left: 0;
     color: #409EFF;
   }
+}
+
+::v-deep .el-form-item__content {
+  line-height: 30px;
 }
 </style>

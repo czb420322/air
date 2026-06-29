@@ -132,18 +132,18 @@ export const constantRoutes = [
       }
     ]
   },
-  {
-    path: '/help',
-    component: Layout,
-    children: [
-      {
-        path: 'index',
-        name: 'Help',
-        component: () => import('@/views/help/index'),
-        meta: { title: '帮助中心', icon: 'el-icon-setting' }
-      }
-    ]
-  },
+  // {
+  //   path: '/help',
+  //   component: Layout,
+  //   children: [
+  //     {
+  //       path: 'index',
+  //       name: 'Help',
+  //       component: () => import('@/views/help/index'),
+  //       meta: { title: '帮助中心', icon: 'el-icon-setting' }
+  //     }
+  //   ]
+  // },
 
   {
     path: '/logs',
@@ -203,7 +203,7 @@ export const constantRoutes = [
 ]
 
 const createRouter = () => new Router({
-  // mode: 'history', // require service support
+  mode: 'history', // 使用 history 模式，URL 中不带 #
   scrollBehavior: () => ({ y: 0 }),
   routes: constantRoutes
 })
