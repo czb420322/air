@@ -8,7 +8,7 @@
           <div class="siderTenantName">
             <span class="siderTenantNameText">{{ selectedProject.company_name }}</span>
             <span class="ant-btri-icon-box iconDownSmall">
-              <i :class="['el-icon-arrow-down', { 'rotate': showTenantDropdown }]"></i>
+              <i :class="['el-icon-arrow-down']"></i>
             </span>
           </div>
           <div class="siderTenantCode">{{ selectedProject.code }}</div>

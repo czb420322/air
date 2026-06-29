@@ -121,7 +121,8 @@ service.interceptors.response.use(
     // 开发环境打印响应日志
     logger.log(`[Response] ${response.config.url}`, response.data)
 
-    const res = response.data
+    // 解构多层包装的响应数据
+    const res = unwrapResponse(response.data)
 
     // 根据业务状态码处理
     if (res.code !== 200) {
@@ -273,9 +274,77 @@ const requestWithRetry = async (config, retries = retryConfig.retries) => {
   }
 }
 
+/**
+ * 解构多层包装的响应数据
+ * 支持多种响应格式：
+ * 1. { code: 200, data: {...} } - 标准格式
+ * 2. { success: true, data: {...} } - 成功标志格式
+ * 3. { result: {...} } - 结果格式
+ * 4. { data: { code: 200, data: {...} } } - 双层包装格式
+ * 5. { data: { success: true, data: {...} } } - 双层成功标志格式
+ * 6. 直接返回数组或对象
+ */
+const unwrapResponse = (data) => {
+  // 如果 data 本身就是数组或包含 code 的标准格式，直接返回
+  if (Array.isArray(data) || (data && typeof data === 'object' && 'code' in data)) {
+    return data
+  }
+
+  // 如果 data 有 data 属性且 data.data 是对象/数组
+  if (data && typeof data === 'object' && data.data !== undefined) {
+    // 检查外层是否有 success 或 code 标志
+    if (data.success === true || data.code === 200 || data.code === 0) {
+      // 如果内层 data 也是包装格式，继续解构
+      if (data.data && typeof data.data === 'object') {
+        // 如果内层 data 有 code 或 success，返回内层 data
+        if ('code' in data.data || 'success' in data.data) {
+          return data.data
+        }
+        // 否则返回内层 data
+        return data.data
+      }
+    }
+    // 如果没有成功标志，直接返回 data.data
+    return data.data
+  }
+
+  // 如果有 result 属性
+  if (data && typeof data === 'object' && data.result !== undefined) {
+    return data.result
+  }
+
+  // 如果有 content 属性
+  if (data && typeof data === 'object' && data.content !== undefined) {
+    return data.content
+  }
+
+  // 如果有 body 属性
+  if (data && typeof data === 'object' && data.body !== undefined) {
+    return data.body
+  }
+
+  // 默认返回原始数据
+  return data
+}
+
+// 将对象转换为 key=value 格式的查询字符串
+const serializeParams = (params) => {
+  if (!params) return ''
+  return Object.keys(params)
+    .filter(key => params[key] !== undefined && params[key] !== null)
+    .map(key => `${encodeURIComponent(key)}=${encodeURIComponent(params[key])}`)
+    .join('&')
+}
+
 // 导出封装的方法
 export const request = {
   get: (url, params, config = {}) => requestWithRetry({ ...config, method: 'get', url, params }),
+  // key-value 格式的 GET 请求（参数拼接在 URL 后面）
+  getKey: (url, params, config = {}) => {
+    const queryString = serializeParams(params)
+    const fullUrl = queryString ? `${url}?${queryString}` : url
+    return requestWithRetry({ ...config, method: 'get', url: fullUrl })
+  },
   post: (url, data, config = {}) => requestWithRetry({ ...config, method: 'post', url, data }),
   put: (url, data, config = {}) => requestWithRetry({ ...config, method: 'put', url, data }),
   delete: (url, params, config = {}) => requestWithRetry({ ...config, method: 'delete', url, params }),

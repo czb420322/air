@@ -41,7 +41,6 @@ export default {
     //查询网关配置
     getGatewayConfig() {
       this.$http.get("/api/gateway/config").then((res) => {
-        console.log("🚀 ~ res44:", res)
         if (res.code === 200) {
           const { gateway_token, gateway_url } = res.data
           this.form.gateway_url = gateway_url;
@@ -54,7 +53,6 @@ export default {
     //保存网关配置
     saveGatewayConfig() {
       this.$http.post("/api/gateway/config", this.form).then((res) => {
-        console.log("🚀 ~ res:", res)
         if (res.code === 200) {
           this.$message.success('保存成功');
         } else {

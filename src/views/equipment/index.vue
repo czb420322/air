@@ -21,7 +21,7 @@
             <span />
           </div>
 
-          <template v-if="zoneEditMode && activeMachineTab === 'indoor'">
+          <template v-if="zoneEditMode && activeMachineTab === 'idu'">
             <div class="zone-edit-header">
               <span class="zone-edit-title">设备分区</span>
               <button type="button" class="more-link" @click.stop="toggleMoreMenu">
@@ -107,7 +107,7 @@
                       确认
                     </button>
                     <button v-if="
-                      activeMachineTab === 'outdoor' &&
+                      activeMachineTab === 'odu' &&
                       ['group', 'item'].includes(data.type) &&
                       !isEditingOutdoorZoneNode(data)
                     " type="button" class="zone-tree-edit-btn" title="编辑" @click.stop="editOutdoorZoneNode(data)"
@@ -117,8 +117,7 @@
                   </span>
                 </el-tree>
               </div>
-              <button v-if="activeMachineTab === 'indoor'" type="button" class="edit-zone-btn"
-                @click="enterZoneEditMode">
+              <button v-if="activeMachineTab === 'idu'" type="button" class="edit-zone-btn" @click="enterZoneEditMode">
                 编辑分区
               </button>
             </div>
@@ -209,7 +208,7 @@
                 <span class="filter-label">{{
                   activeMachineTab === "indoor" ? "实时状态" : "运行状态"
                   }}</span>
-                <el-cascader v-if="activeMachineTab === 'indoor'" :options="indoorOptions" :props="props"
+                <el-cascader v-if="activeMachineTab === 'idu'" :options="indoorOptions" :props="props"
                   @change="handleCascaderChange" size="small" class="status-cascader" collapse-tags placeholder="请选择"
                   clearable></el-cascader>
                 <el-select v-else v-model="filters.runningStatus" placeholder="请选择" size="small" class="status-select"
@@ -228,7 +227,7 @@
 
             <div v-if="expandedFilters" class="filter-row expanded-row">
               <!-- 室内机筛选条件 -->
-              <div v-if="activeMachineTab === 'indoor'" class="filter-box">
+              <div v-if="activeMachineTab === 'idu'" class="filter-box">
                 <span class="filter-label">锁定状态</span>
                 <el-select v-model="filters.lockStatus" placeholder="请选择" size="small"
                   class="expanded-select lock-status-select">
@@ -237,7 +236,7 @@
                 </el-select>
               </div>
 
-              <div v-if="activeMachineTab === 'indoor'" class="filter-box">
+              <div v-if="activeMachineTab === 'idu'" class="filter-box">
                 <span class="filter-label">合约状态</span>
                 <el-select v-model="filters.contractStatus" placeholder="请选择" size="small"
                   class="expanded-select contract-status-select">
@@ -246,7 +245,7 @@
                 </el-select>
               </div>
 
-              <div v-if="activeMachineTab === 'indoor'" class="filter-box">
+              <div v-if="activeMachineTab === 'idu'" class="filter-box">
                 <span class="filter-label">设备机型</span>
                 <el-select v-model="filters.indoorModel" placeholder="请选择" size="small"
                   class="expanded-select indoor-model-select">
@@ -257,7 +256,7 @@
             </div>
 
             <!-- 室外机展开筛选条件 -->
-            <div v-if="expandedFilters && activeMachineTab === 'outdoor'" class="outdoor-filter-rows">
+            <div v-if="expandedFilters && activeMachineTab === 'odu'" class="outdoor-filter-rows">
               <div class="filter-row">
                 <div class="filter-box">
                   <span class="filter-label">静音模式</span>
@@ -343,7 +342,7 @@
           <div v-else class="action-row">
             <div class="action-spacer"></div>
             <div class="actions">
-              <button v-if="activeMachineTab === 'indoor' && viewMode === 'card'" type="button"
+              <button v-if="activeMachineTab === 'idu' && viewMode === 'card'" type="button"
                 class="action-btn secondary" @click.stop="openSortDialog">
                 排序配置
               </button>
@@ -353,7 +352,7 @@
               <button type="button" class="action-btn secondary" @click="refreshData">
                 刷新
               </button>
-              <button v-if="activeMachineTab === 'outdoor'" type="button" placeholder="请选择" class="action-btn primary"
+              <button v-if="activeMachineTab === 'odu'" type="button" placeholder="请选择" class="action-btn primary"
                 @click="openBatchDelete">
                 批量删除
               </button>
@@ -409,7 +408,7 @@
               <div class="card-title-row">
                 <div class="card-title-wrap">
                   <span class="card-icon">
-                    <img v-if="activeMachineTab === 'outdoor'"
+                    <img v-if="activeMachineTab === 'odu'"
                       src="data:image/png;base64,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"
                       alt="outdoor-icon" />
                     <img v-else src="https://static-btri.midea.com/mfs/2676/1723456813979.png" alt="indoor-icon" />
@@ -423,7 +422,7 @@
                 </div>
               </div>
 
-              <div v-if="activeMachineTab === 'outdoor'" class="outdoor-power">
+              <div v-if="activeMachineTab === 'odu'" class="outdoor-power">
                 <div>交流电表：{{ item.acPower }}</div>
                 <div>直流电表：{{ item.dcPower }}</div>
               </div>
@@ -480,7 +479,7 @@
                         : "模式优先设置"
                     }}
                   </th>
-                  <th v-if="activeMachineTab === 'indoor'">模式</th>
+                  <th v-if="activeMachineTab === 'idu'">模式</th>
                   <th>操作</th>
                 </tr>
               </thead>
@@ -496,7 +495,7 @@
                   <td>{{ row.system }}</td>
                   <td>{{ row.attachment }}</td>
                   <td>{{ row.model }}</td>
-                  <td v-if="activeMachineTab === 'indoor'">{{ row.mode }}</td>
+                  <td v-if="activeMachineTab === 'idu'">{{ row.mode }}</td>
                   <td class="operate-links">
                     <a href="javascript:void(0)">控制</a>
                     <a href="javascript:void(0)">编辑</a>
@@ -648,10 +647,10 @@
         <div v-if="selectedDevice">
           <div class="drawer-header">
             <div class="header-left">
-              <img :src="activeMachineTab === 'indoor'
+              <img :src="activeMachineTab === 'idu'
                 ? 'https://static-btri.midea.com/mfs/2676/1723456813979.png'
                 : 'data:image/png;base64,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'
-                " :alt="activeMachineTab === 'indoor' ? 'indoor-icon' : 'outdoor-icon'
+                " :alt="activeMachineTab === 'idu' ? 'indoor-icon' : 'outdoor-icon'
                   " />
               <span class="device-name">{{
                 editingName ? editNameValue : selectedDevice.name
@@ -673,7 +672,7 @@
 
           <div v-if="!editingName" class="detail-content">
             <template v-if="activeDetailTab === 'basic'">
-              <template v-if="activeMachineTab === 'indoor'">
+              <template v-if="activeMachineTab === 'idu'">
                 <div class="detail-row">
                   <span class="detail-label">所属分区</span>
                   <span class="detail-value">{{
@@ -830,7 +829,7 @@
             </template>
 
             <template v-if="
-              activeDetailTab === 'related' && activeMachineTab === 'outdoor'
+              activeDetailTab === 'related' && activeMachineTab === 'odu'
             ">
               <div class="related-header">
                 <span class="related-title">室外机名称: {{ selectedDevice.name }}</span>
@@ -1211,7 +1210,7 @@ export default {
   data() {
     return {
       activeTopTab: "management",
-      activeMachineTab: "indoor",
+      activeMachineTab: "idu",
       viewMode: "card",
       currentPage: 1,
       pageSize: 2,
@@ -1301,8 +1300,8 @@ export default {
         { key: "logs", label: "控制日志" },
       ],
       machineTabs: [
-        { key: "indoor", label: "室内机" },
-        { key: "outdoor", label: "室外机" },
+        { key: "idu", label: "室内机" },
+        { key: "odu", label: "室外机" },
       ],
       filters: {
         keyword: "",
@@ -1371,52 +1370,8 @@ export default {
         { value: "pv-hybrid", label: "光混" },
         { value: "pv-storage", label: "光储" },
       ],
-      indoorZones: [
-        {
-          id: "group-unassigned",
-          name: "未分区",
-          expanded: true,
-          items: [
-            { id: "idu-11", label: "1号系统11" },
-            { id: "idu-12", label: "1号系统12" },
-            { id: "idu-15", label: "1号系统15" },
-            { id: "idu-22", label: "1号系统22" },
-            { id: "idu-39", label: "1号系统39" },
-            { id: "idu-40", label: "1号系统40" },
-            { id: "idu-010", label: "IDU-00625-0-10 零食角..." },
-            { id: "idu-011", label: "IDU-00625-0-11爱丁堡" },
-            { id: "idu-012", label: "IDU-00625-0-12 慕尼黑" },
-            { id: "idu-013", label: "IDU-00625-0-13 慕尼黑..." },
-            { id: "idu-004", label: "IDU-00625-0-4 旧金山..." },
-            { id: "idu-005", label: "IDU-00625-0-5 温哥华" },
-            { id: "idu-006", label: "IDU-00625-0-6 健身房" },
-            { id: "idu-009", label: "IDU-00625-0-9 零食角" },
-            { id: "idu-141", label: "IDU-00627-2-14华芯" },
-            { id: "idu-152", label: "IDU-00627-2-15 林宏 Ti..." },
-            { id: "idu-162", label: "IDU-00627-2-16 赣哥 朱钰" },
-          ],
-        },
-      ],
-      outdoorZones: [
-        {
-          id: "vrf-1",
-          name: "VRF-00625-01",
-          expanded: true,
-          items: [
-            { id: "odu-129-a", label: "ODU-00625-1-129" },
-            { id: "odu-130-a", label: "ODU-00625-1-130" },
-          ],
-        },
-        {
-          id: "vrf-2",
-          name: "VRF-00627-02",
-          expanded: true,
-          items: [
-            { id: "odu-129-b", label: "ODU-00627-2-129" },
-            { id: "odu-130-b", label: "ODU-00627-2-130" },
-          ],
-        },
-      ],
+      indoorZones: [],
+      outdoorZones: [],
       editableZoneGroups: [],
       props: { multiple: true },
       indoorOptions: [
@@ -1769,6 +1724,7 @@ export default {
             children: buildTree(g.id),
           }));
       };
+      console.log("🚀 ~ buildTree:", buildTree)
       return buildTree(null);
     },
     sortedEditableZoneGroups() {
@@ -1788,7 +1744,7 @@ export default {
       return result;
     },
     currentZoneGroups() {
-      return this.activeMachineTab === "indoor"
+      return this.activeMachineTab === 'idu'
         ? this.indoorZones
         : this.outdoorZones;
     },
@@ -1796,7 +1752,7 @@ export default {
       return { children: "children", label: "label" };
     },
     currentZoneTreeData() {
-      return this.currentZoneGroups.map((group) => ({
+     const arr= this.currentZoneGroups.map((group) => ({
         id: group.id,
         type: "group",
         label: `${group.name}（${group.items.length}）`,
@@ -1810,6 +1766,8 @@ export default {
           parent: group,
         })),
       }));
+      console.log("🚀 ~ arr1813:", arr)
+      return arr 
     },
     defaultExpandedZoneKeys() {
       return this.currentZoneGroups
@@ -1817,12 +1775,12 @@ export default {
         .map((group) => group.id);
     },
     currentCards() {
-      return this.activeMachineTab === "indoor"
+      return this.activeMachineTab === 'idu'
         ? this.filteredIndoorCards
         : this.filteredOutdoorCards;
     },
     currentTableRows() {
-      return this.activeMachineTab === "indoor"
+      return this.activeMachineTab === 'idu'
         ? this.filteredIndoorTableRows
         : this.filteredOutdoorTableRows;
     },
@@ -1865,7 +1823,7 @@ export default {
       );
     },
     searchFieldOptions() {
-      if (this.activeMachineTab === "indoor") {
+      if (this.activeMachineTab === 'idu') {
         return [
           { value: "name", label: "设备名称" },
           { value: "indoorBarcode", label: "室内机条码" },
@@ -1882,7 +1840,7 @@ export default {
       }
     },
     detailTabs() {
-      if (this.activeMachineTab === "outdoor") {
+      if (this.activeMachineTab === "odu") {
         return [
           { key: "basic", label: "基本信息" },
           { key: "related", label: "关联内机" },
@@ -1905,9 +1863,30 @@ export default {
   mounted() {
     this.getDeviceList();
     this.getAllGroupDevice();
+    this.getDeviceListByGatewayType();
   },
   methods: {
     // =========
+    //通过网关类型获取设别列表
+    getDeviceListByGatewayType() {
+      this.$http.getKey("/api/device/list", { device_type: this.activeMachineTab })
+        .then((res) => {
+          console.log("🚀 ~ res1918***:", res)
+          // 响应拦截器已自动解构多层包装数据，res 即为解构后的结果
+          // 支持多种数据格式：res.data、res.result、res 本身是数组等
+          const deviceList = Array.isArray(res) ? res : (res.data.data || res.result || res.list || res.records || [])
+          console.log("🚀 ~ deviceList:", deviceList)
+          
+          // 将真实数据转换为模拟数据格式
+          if (deviceList && Array.isArray(deviceList)) {
+            if (this.activeMachineTab === 'idu') {
+              this.indoorZones = this.transformDeviceToDeviceZones(deviceList, 'IDU');
+            } else {
+              this.outdoorZones = this.transformDeviceToDeviceZones(deviceList, 'ODU');
+            }
+          }
+        });
+    },
     //查询全部的分组设备
     getAllGroupDevice() {
       this.$http.get("/api/device/group-devices").then((res) => {
@@ -1918,9 +1897,22 @@ export default {
     //获取设备列表
     getDeviceList() {
       this.$http.get("/api/setting/network").then((res) => {
-        console.log("🚀 ~ res:", res)
+        // console.log("🚀 ~ res:", res)
         // this.deviceList = res.data;
       });
+    },
+    // 将真实数据转换为模拟数据格式
+    transformDeviceToDeviceZones(deviceList, type) {
+      if (!deviceList || !Array.isArray(deviceList)) return [];
+      return [{
+        id: type === 'IDU' ? 'group-unassigned' : 'group-all',
+        name: type === 'IDU' ? '未分区' : '全部设备',
+        expanded: true,
+        items: deviceList.map((device, index) => ({
+          id: `${type.toLowerCase()}-${device.deviceSn || index}`,
+          label: device.name || device.deviceSn || `设备${index + 1}`
+        }))
+      }];
     },
     // /api/setting/network
     // ==============
@@ -1938,7 +1930,7 @@ export default {
       this.selectedDevice = device;
       this.activeDetailTab = "basic";
       this.showDeviceDetail = true;
-      if (this.activeMachineTab === "outdoor") {
+      if (this.activeMachineTab === "odu") {
         this.relatedIndoors = this.getRelatedIndoors(device);
       }
     },
@@ -2065,7 +2057,7 @@ export default {
     },
     isEditingOutdoorZoneNode(data) {
       return (
-        this.activeMachineTab === "outdoor" &&
+        this.activeMachineTab === "odu" &&
         data &&
         ["group", "item"].includes(data.type) &&
         this.outdoorZoneEditingId === data.id
@@ -2440,15 +2432,16 @@ export default {
     },
     switchMachineTab(tab) {
       this.activeMachineTab = tab;
+      this.getDeviceListByGatewayType();
       this.expandedFilters = false;
       this.resetPagination();
-      if (tab === "indoor") {
+      if (tab === "idu") {
         this.viewMode = "card";
         this.system = [];
         this.filters.lockStatus = "";
         this.filters.contractStatus = "";
         this.filters.indoorModel = "";
-      } else if (tab === "outdoor") {
+      } else if (tab === "odu") {
         this.viewMode = "card";
         this.system = [];
         this.filters.silentMode = "";
