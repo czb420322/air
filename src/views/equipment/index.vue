@@ -17,6 +17,7 @@
         :class="['content-shell', { 'sidebar-collapsed': sidebarCollapsed }]"
       >
         <aside
+        :style="{ width: iconBtnFlag ? '338px' : '200px' }"
           :class="[
             'sidebar',
             { editing: zoneEditMode, collapsed: sidebarCollapsed },
@@ -195,7 +196,7 @@
           </template>
         </aside>
 
-        <button type="button" class="collapse-btn" @click="toggleSidebar">
+        <button type="button"   :style="{ left: iconBtnFlag ? '322px' : '200px' }" class="collapse-btn" @click="toggleSidebar">
           {{ sidebarCollapsed ? "»" : "«" }}
         </button>
 
@@ -5477,7 +5478,7 @@ export default {
 }
 
 .sidebar {
-  width: 338px;
+
   padding: 0 12px 24px 20px;
   border-right: 1px solid #e1e6ef;
   background: #fff;
@@ -5612,7 +5613,7 @@ export default {
 }
 
 .collapse-btn {
-  left: 322px;
+  
   top: 168px;
   width: 26px;
   height: 42px;
