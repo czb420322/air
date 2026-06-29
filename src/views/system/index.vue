@@ -3,14 +3,14 @@
     <div class="page-header">
       <h2>系统设置</h2>
     </div>
-    
+
     <div class="content-wrapper">
       <el-form :model="form" label-width="120px" style="max-width: 600px;">
         <el-form-item label="网关地址">
-          <el-input v-model="form.gatewayAddress" placeholder="请输入网关地址"></el-input>
+          <el-input v-model="form.gateway_url" placeholder="请输入网关地址"></el-input>
         </el-form-item>
         <el-form-item label="网关token">
-          <el-input v-model="form.gatewayToken" placeholder="请输入网关token"></el-input>
+          <el-input v-model="form.gateway_token" placeholder="请输入网关token"></el-input>
         </el-form-item>
         <el-form-item>
           <el-button type="primary" @click="onSubmit">保存</el-button>
@@ -27,26 +27,57 @@ export default {
   data() {
     return {
       form: {
-        gatewayAddress: '',
-        gatewayToken: ''
+        gateway_url: '',
+        gateway_token: ''
       }
     }
   },
+  mounted() {
+    this.getGatewayConfig()
+  },
   methods: {
+
+    // =========
+    //查询网关配置
+    getGatewayConfig() {
+      this.$http.get("/api/gateway/config").then((res) => {
+        console.log("🚀 ~ res44:", res)
+        if (res.code === 200) {
+          const { gateway_token, gateway_url } = res.data
+          this.form.gateway_url = gateway_url;
+          this.form.gateway_token = gateway_token;
+        } else {
+          this.$message.error(res.message)
+        }
+      });
+    },
+    //保存网关配置
+    saveGatewayConfig() {
+      this.$http.post("/api/gateway/config", this.form).then((res) => {
+        console.log("🚀 ~ res:", res)
+        if (res.code === 200) {
+          this.$message.success('保存成功');
+        } else {
+          this.$message.error(res.message);
+        }
+      });
+    },
+
+    //==========
     onSubmit() {
-        if (!this.form.gatewayAddress) {
-          this.$message.error('网关地址不能为空')
-          return
-        }
-        if (!this.form.gatewayToken) {
-          this.$message.error('网关token不能为空')
-          return
-        }
-        this.$message.success('保存成功')
-},
+      if (!this.form.gateway_url) {
+        this.$message.error('网关地址不能为空')
+        return
+      }
+      if (!this.form.gateway_token) {
+        this.$message.error('网关token不能为空')
+        return
+      }
+      this.saveGatewayConfig()
+    },
     onReset() {
-      this.form.gatewayAddress = ''
-      this.form.gatewayToken = ''
+      this.form.gateway_url = ''
+      this.form.gateway_token = ''
     }
   }
 }

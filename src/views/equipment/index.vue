@@ -100,7 +100,7 @@
                           " @keydown.esc.stop.prevent="cancelOutdoorZoneNodeEdit" />
                       <span v-else class="zone-tree-label">{{
                         node.label
-                      }}</span>
+                        }}</span>
                     </span>
                     <button v-if="isEditingOutdoorZoneNode(data)" type="button" class="zone-tree-confirm-btn" title="确认"
                       @click.stop="saveOutdoorZoneNodeEdit(data)">
@@ -197,7 +197,7 @@
               <div class="filter-box">
                 <span class="filter-label">{{
                   activeMachineTab === "indoor" ? "所属系统" : "所属系统"
-                }}</span>
+                  }}</span>
 
                 <el-select v-model="system" multiple collapse-tags size="small" class="system-select" placeholder="请选择">
                   <el-option v-for="item in systemOptions" :key="item.value" :label="item.label" :value="item.value">
@@ -208,7 +208,7 @@
               <div class="filter-box">
                 <span class="filter-label">{{
                   activeMachineTab === "indoor" ? "实时状态" : "运行状态"
-                }}</span>
+                  }}</span>
                 <el-cascader v-if="activeMachineTab === 'indoor'" :options="indoorOptions" :props="props"
                   @change="handleCascaderChange" size="small" class="status-cascader" collapse-tags placeholder="请选择"
                   clearable></el-cascader>
@@ -507,13 +507,8 @@
             </table>
 
             <div class="pagination-bar">
-              <el-pagination
-                background
-                layout="total, prev, pager, next"
-                :current-page.sync="currentPage"
-                :page-size="pageSize"
-                :total="currentTableRows.length"
-              />
+              <el-pagination background layout="total, prev, pager, next" :current-page.sync="currentPage"
+                :page-size="pageSize" :total="currentTableRows.length" />
             </div>
           </div>
         </main>
@@ -660,7 +655,7 @@
                   " />
               <span class="device-name">{{
                 editingName ? editNameValue : selectedDevice.name
-              }}</span>
+                }}</span>
             </div>
             <button v-if="!editingName" type="button" class="edit-name-btn" @click="openEditName">
               编辑名称
@@ -683,67 +678,67 @@
                   <span class="detail-label">所属分区</span>
                   <span class="detail-value">{{
                     selectedDevice.zone || "未分区"
-                  }}</span>
+                    }}</span>
                 </div>
                 <div class="detail-row">
                   <span class="detail-label">所属室外机名称</span>
                   <span class="detail-value">{{
                     selectedDevice.outdoorName || "-"
-                  }}</span>
+                    }}</span>
                 </div>
                 <div class="detail-row">
                   <span class="detail-label">所属室外机条码</span>
                   <span class="detail-value">{{
                     selectedDevice.outdoorBarcode || "-"
-                  }}</span>
+                    }}</span>
                 </div>
                 <div class="detail-row">
                   <span class="detail-label">网关条码</span>
                   <span class="detail-value">{{
                     selectedDevice.gatewayBarcode || "-"
-                  }}</span>
+                    }}</span>
                 </div>
                 <div class="detail-row">
                   <span class="detail-label">室内机条码</span>
                   <span class="detail-value">{{
                     selectedDevice.indoorBarcode || "-"
-                  }}</span>
+                    }}</span>
                 </div>
                 <div class="detail-row">
                   <span class="detail-label">室内机编号</span>
                   <span class="detail-value">{{
                     selectedDevice.indoorCode || "-"
-                  }}</span>
+                    }}</span>
                 </div>
                 <div class="detail-row">
                   <span class="detail-label">室内机地址码</span>
                   <span class="detail-value">{{
                     selectedDevice.addressCode || "-"
-                  }}</span>
+                    }}</span>
                 </div>
                 <div class="detail-row">
                   <span class="detail-label">室内机机型</span>
                   <span class="detail-value">{{
                     selectedDevice.model || "-"
-                  }}</span>
+                    }}</span>
                 </div>
                 <div class="detail-row">
                   <span class="detail-label">室内机类型</span>
                   <span class="detail-value">{{
                     selectedDevice.type || "-"
-                  }}</span>
+                    }}</span>
                 </div>
                 <div class="detail-row">
                   <span class="detail-label">线控器组号</span>
                   <span class="detail-value">{{
                     selectedDevice.controllerGroup || "-"
-                  }}</span>
+                    }}</span>
                 </div>
                 <div class="detail-row">
                   <span class="detail-label">注册时间</span>
                   <span class="detail-value">{{
                     selectedDevice.registerTime || "-"
-                  }}</span>
+                    }}</span>
                 </div>
               </template>
               <template v-else>
@@ -751,85 +746,85 @@
                   <span class="detail-label">室外机条码</span>
                   <span class="detail-value">{{
                     selectedDevice.outdoorBarcode || "-"
-                  }}</span>
+                    }}</span>
                 </div>
                 <div class="detail-row">
                   <span class="detail-label">网关条码</span>
                   <span class="detail-value">{{
                     selectedDevice.gatewayBarcode || "-"
-                  }}</span>
+                    }}</span>
                 </div>
                 <div class="detail-row">
                   <span class="detail-label">室外机编号</span>
                   <span class="detail-value">{{
                     selectedDevice.outdoorCode || "-"
-                  }}</span>
+                    }}</span>
                 </div>
                 <div class="detail-row">
                   <span class="detail-label">室外机地址码</span>
                   <span class="detail-value">{{
                     selectedDevice.addressCode || "-"
-                  }}</span>
+                    }}</span>
                 </div>
                 <div class="detail-row">
                   <span class="detail-label">设置内机台数</span>
                   <span class="detail-value">{{
                     selectedDevice.setIndoorCount || "--"
-                  }}</span>
+                    }}</span>
                 </div>
                 <div class="detail-row">
                   <span class="detail-label">在线内机台数</span>
                   <span class="detail-value">{{
                     selectedDevice.onlineIndoorCount || "0"
-                  }}</span>
+                    }}</span>
                 </div>
                 <div class="detail-row">
                   <span class="detail-label">内机开机台数</span>
                   <span class="detail-value">{{
                     selectedDevice.workingIndoorCount || "0"
-                  }}</span>
+                    }}</span>
                 </div>
                 <div class="detail-row">
                   <span class="detail-label">注册时间</span>
                   <span class="detail-value">{{
                     selectedDevice.registerTime || "-"
-                  }}</span>
+                    }}</span>
                 </div>
                 <div class="detail-row">
                   <span class="detail-label">网络地址</span>
                   <span class="detail-value">{{
                     selectedDevice.networkAddress || "-"
-                  }}</span>
+                    }}</span>
                 </div>
                 <div class="detail-row">
                   <span class="detail-label">电表接入状态</span>
                   <span class="detail-value">{{
                     selectedDevice.meterStatus || "已接入电表"
-                  }}</span>
+                    }}</span>
                 </div>
                 <div class="detail-row">
                   <span class="detail-label">电表归属类型</span>
                   <span class="detail-value">{{
                     selectedDevice.meterType || "第三方电表"
-                  }}</span>
+                    }}</span>
                 </div>
                 <div class="detail-row">
                   <span class="detail-label">交流电表读数(kWh)</span>
                   <span class="detail-value">{{
                     selectedDevice.acMeterReading || "-"
-                  }}</span>
+                    }}</span>
                 </div>
                 <div class="detail-row">
                   <span class="detail-label">光伏类型</span>
                   <span class="detail-value">{{
                     selectedDevice.pvType || "无"
-                  }}</span>
+                    }}</span>
                 </div>
                 <div class="detail-row">
                   <span class="detail-label">直流电表读数(kWh)</span>
                   <span class="detail-value">{{
                     selectedDevice.dcMeterReading || "-"
-                  }}</span>
+                    }}</span>
                 </div>
               </template>
             </template>
@@ -1907,7 +1902,28 @@ export default {
       }
     },
   },
+  mounted() {
+    this.getDeviceList();
+    this.getAllGroupDevice();
+  },
   methods: {
+    // =========
+    //查询全部的分组设备
+    getAllGroupDevice() {
+      this.$http.get("/api/device/group-devices").then((res) => {
+        console.log("🚀 ~ res:", res)
+        // this.deviceList = res.data;
+      });
+    },
+    //获取设备列表
+    getDeviceList() {
+      this.$http.get("/api/setting/network").then((res) => {
+        console.log("🚀 ~ res:", res)
+        // this.deviceList = res.data;
+      });
+    },
+    // /api/setting/network
+    // ==============
     handleTopTabChange(tabKey) {
       this.activeTopTab = tabKey;
       this.closeAllDialogs();
@@ -2882,7 +2898,7 @@ export default {
 }
 
 .zone-tree-confirm-btn:hover {
- background: #004fd6;
+  background: #004fd6;
 }
 
 .zone-tree-node.item.active {
@@ -3850,9 +3866,10 @@ export default {
   font-size: 16px;
   width: 24px;
   text-align: center;
-  i{
+
+  i {
     font-size: 16px;
-  width: 24px;
+    width: 24px;
   }
 }
 

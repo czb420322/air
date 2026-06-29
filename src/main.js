@@ -14,7 +14,7 @@ import router from './router'
 
 import '@/icons' // icon
 import '@/permission' // permission control
-
+import { request } from '@/utils/request'
 /**
  * If you don't want to use mock-server
  * you want to use MockJs for mock api
@@ -31,6 +31,7 @@ if (process.env.NODE_ENV === 'production') {
 // set ElementUI lang to zh-CN
 Vue.use(ElementUI, { locale })
 
+Vue.prototype.$http = request
 Vue.config.productionTip = false
 
 new Vue({
