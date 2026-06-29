@@ -5685,11 +5685,6 @@ export default {
   min-width: 0;
 }
 
-.combo-select {
-  padding: 0 16px;
-  color: #14253f;
-  font-size: 16px;
-}
 
 .combo-input {
   width: 100%;
