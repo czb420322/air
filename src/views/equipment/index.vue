@@ -638,9 +638,9 @@
                 <button type="button" class="action-btn primary">
                   批量删除
                 </button>
-                <button type="button" class="action-btn secondary">
+                <el-button  :disabled="zoneEditMode" type="primary" :class="zoneEditMode ? '' : 'action-btn'" class="secondary">
                   批量重命名
-                </button>
+                </el-button>
               </div>
             </div>
 
@@ -4392,10 +4392,7 @@ export default {
   }
 }
 
-.device-card.active {
-  border-color: #2d63ff;
-  background: #f0f5ff;
-}
+
 
 .card-check {
   width: 18px;
@@ -5919,7 +5916,7 @@ export default {
 
 .device-card.active {
   border-color: #0f62fe;
-  background: #f3f7ff;
+  border-top:6px solid #0f62fe;
 }
 
 .card-title {
