@@ -17,7 +17,7 @@
         :class="['content-shell', { 'sidebar-collapsed': sidebarCollapsed }]"
       >
         <aside
-        :style="{ width: iconBtnFlag ? '338px' : '200px' }"
+          :style="{ width: iconBtnFlag ? '338px' : '200px' }"
           :class="[
             'sidebar',
             { editing: zoneEditMode, collapsed: sidebarCollapsed },
@@ -196,7 +196,12 @@
           </template>
         </aside>
 
-        <button type="button"   :style="{ left: iconBtnFlag ? '322px' : '200px' }" class="collapse-btn" @click="toggleSidebar">
+        <button
+          type="button"
+          :style="{ left: iconBtnFlag ? '322px' : '200px' }"
+          class="collapse-btn"
+          @click="toggleSidebar"
+        >
           {{ sidebarCollapsed ? "»" : "«" }}
         </button>
 
@@ -638,7 +643,12 @@
                 <button type="button" class="action-btn primary">
                   批量删除
                 </button>
-                <el-button  :disabled="zoneEditMode" type="primary" :class="zoneEditMode ? '' : 'action-btn'" class="secondary">
+                <el-button
+                  :disabled="zoneEditMode"
+                  type="primary"
+                  :class="zoneEditMode ? '' : 'action-btn'"
+                  class="secondary"
+                >
                   批量重命名
                 </el-button>
               </div>
@@ -1537,7 +1547,7 @@
               <button
                 type="button"
                 class="batch-btn confirm"
-                @click="selectedDeviceFlag = false,iconBtnFlag = true"
+                @click="(selectedDeviceFlag = false), (iconBtnFlag = true)"
               >
                 取消
               </button>
@@ -2377,7 +2387,10 @@ export default {
   },
   computed: {
     zoneTreeData() {
+      this.editableZoneGroups= this.indoorZones;
+      // console.log("🚀 ~ this.currentZoneGroups():", this.currentZoneGroups())
       const groups = this.editableZoneGroups;
+      console.log("🚀 ~ groups:", groups)
       const buildTree = (parentId) => {
         return groups
           .filter((g) => g.parentId === parentId)
@@ -2391,7 +2404,6 @@ export default {
             children: buildTree(g.id),
           }));
       };
-      console.log("🚀 ~ buildTree:", buildTree);
       return buildTree(null);
     },
     sortedEditableZoneGroups() {
@@ -2410,6 +2422,7 @@ export default {
       traverse(null);
       return result;
     },
+    //分区数据
     currentZoneGroups() {
       return this.activeMachineTab === "idu"
         ? this.indoorZones
@@ -2433,7 +2446,6 @@ export default {
           parent: group,
         })),
       }));
-      console.log("🚀 ~ arr1813:", arr);
       return arr;
     },
     defaultExpandedZoneKeys() {
@@ -2539,13 +2551,11 @@ export default {
       this.$http
         .getKey("/api/device/list", { device_type: this.activeMachineTab })
         .then((res) => {
-          console.log("🚀 ~ res1918***:", res);
           // 响应拦截器已自动解构多层包装数据，res 即为解构后的结果
           // 支持多种数据格式：res.data、res.result、res 本身是数组等
           const deviceList = Array.isArray(res)
             ? res
             : res.data.data || res.result || res.list || res.records || [];
-          console.log("🚀 ~ deviceList:", deviceList);
 
           // 将真实数据转换为模拟数据格式
           if (deviceList && Array.isArray(deviceList)) {
@@ -2566,14 +2576,12 @@ export default {
     //查询全部的分组设备
     getAllGroupDevice() {
       this.$http.get("/api/device/group-devices").then((res) => {
-        console.log("🚀 ~ res:", res);
         // this.deviceList = res.data;
       });
     },
     //获取设备列表
     getDeviceList() {
       this.$http.get("/api/setting/network").then((res) => {
-        // console.log("🚀 ~ res:", res)
         // this.deviceList = res.data;
       });
     },
@@ -4392,8 +4400,6 @@ export default {
   }
 }
 
-
-
 .card-check {
   width: 18px;
   height: 18px;
@@ -5202,7 +5208,7 @@ export default {
   margin-left: 20px;
   background: #fff;
   width: 440px;
-      box-shadow: -8px 0 6px 0 hsla(0, 0%, 90.2%, .5);
+  box-shadow: -8px 0 6px 0 hsla(0, 0%, 90.2%, 0.5);
 }
 
 .batch-control-drawer {
@@ -5475,7 +5481,6 @@ export default {
 }
 
 .sidebar {
-
   padding: 0 12px 24px 20px;
   border-right: 1px solid #e1e6ef;
   background: #fff;
@@ -5610,7 +5615,6 @@ export default {
 }
 
 .collapse-btn {
-  
   top: 168px;
   width: 26px;
   height: 42px;
@@ -5681,7 +5685,6 @@ export default {
   grid-template-columns: 136px minmax(0, 1fr) 44px;
   min-width: 0;
 }
-
 
 .combo-input {
   width: 100%;
@@ -5916,7 +5919,7 @@ export default {
 
 .device-card.active {
   border-color: #0f62fe;
-  border-top:6px solid #0f62fe;
+  border-top: 4px solid #0f62fe;
 }
 
 .card-title {
