@@ -59,20 +59,49 @@
             <div class="zone-edit-tree">
               <el-tree
                 :data="zoneTreeData"
-                :props="{ children: 'children', label: 'label' }"
+                :props="zoneTreeProps"
+                node-key="id"
                 :highlight-current="true"
                 :expand-on-click-node="false"
+                :default-expanded-keys="defaultExpandedZoneKeys"
                 @node-click="handleZoneNodeClick"
+                @node-expand="handleZoneNodeExpand"
+                @node-collapse="handleZoneNodeCollapse"
               >
-                <span slot-scope="{ node, data }" class="custom-tree-node">
-                  <span
-                    :class="[
-                      'editable-zone-name',
-                      { active: selectedEditZone === data.id },
-                    ]"
-                    >{{ node.label }}</span
+                <span
+                  slot-scope="{ node, data }"
+                  :class="[
+                    'zone-tree-node',
+                    data.type,
+                    { active: selectedEditZone === data.id },
+                  ]"
+                >
+                  <span class="zone-tree-content">
+                    <input
+                      v-if="isEditingZoneNode(data)"
+                      ref="zoneEditInput"
+                      class="zone-tree-edit-input"
+                      type="text"
+                      v-model="zoneEditValue"
+                      @click.stop
+                      @keydown.enter.stop.prevent="saveZoneNodeEdit(data)"
+                      @keydown.esc.stop.prevent="cancelZoneNodeEdit"
+                    />
+                    <span v-else class="zone-tree-label">{{ node.label }}</span>
+                  </span>
+                  <button
+                    v-if="isEditingZoneNode(data)"
+                    type="button"
+                    class="zone-tree-confirm-btn"
+                    title="确认"
+                    @click.stop="saveZoneNodeEdit(data)"
                   >
-                  <span class="editable-zone-actions">
+                    确认
+                  </button>
+                  <span
+                    v-if="!isEditingZoneNode(data)"
+                    class="editable-zone-actions"
+                  >
                     <button
                       type="button"
                       class="icon-btn"
@@ -80,10 +109,18 @@
                     >
                       +
                     </button>
-                    <button type="button" class="icon-btn" @click.stop>
+                    <button
+                      type="button"
+                      class="icon-btn"
+                      @click.stop="editZoneNode(data)"
+                    >
                       ✎
                     </button>
-                    <button type="button" class="icon-btn" @click.stop>
+                    <button
+                      type="button"
+                      class="icon-btn"
+                      @click.stop="deleteZoneNode(data)"
+                    >
                       🗑
                     </button>
                   </span>
@@ -1916,6 +1953,8 @@ export default {
       currentZoneGroupId: "",
       outdoorZoneEditingId: "",
       outdoorZoneEditValue: "",
+      zoneEditingId: "",
+      zoneEditValue: "",
       activeBatchTab: "normal",
       batchTabs: [
         { key: "normal", label: "常规控制" },
@@ -2387,24 +2426,22 @@ export default {
   },
   computed: {
     zoneTreeData() {
-      this.editableZoneGroups= this.indoorZones;
-      // console.log("🚀 ~ this.currentZoneGroups():", this.currentZoneGroups())
-      const groups = this.editableZoneGroups;
-      console.log("🚀 ~ groups:", groups)
-      const buildTree = (parentId) => {
-        return groups
-          .filter((g) => g.parentId === parentId)
-          .map((g) => ({
-            id: g.id,
-            label: `${g.name} (${g.count})`,
-            name: g.name,
-            count: g.count,
-            level: g.level,
-            parentId: g.parentId,
-            children: buildTree(g.id),
-          }));
-      };
-      return buildTree(null);
+      this.editableZoneGroups = this.indoorZones;
+      const arr = this.currentZoneGroups.map((group) => ({
+        id: group.id,
+        type: "group",
+        label: `${group.name}（${group.items.length}）`,
+        raw: group,
+        children: group.items.map((item) => ({
+          id: item.id,
+          type: "item",
+          label: item.label,
+          raw: item,
+          parentId: group.id,
+          parent: group,
+        })),
+      }));
+      return arr;
     },
     sortedEditableZoneGroups() {
       const result = [];
@@ -2446,6 +2483,7 @@ export default {
           parent: group,
         })),
       }));
+      console.log("🚀 ~ arr:", arr);
       return arr;
     },
     defaultExpandedZoneKeys() {
@@ -3254,11 +3292,15 @@ export default {
       this.nodeMenuId = "";
       this.editableZoneGroups = [];
       this.selectedEditZone = "";
+      this.zoneEditingId = "";
+      this.zoneEditValue = "";
     },
     exitZoneEditMode() {
       this.zoneEditMode = false;
       this.showMoreMenu = false;
       this.nodeMenuId = "";
+      this.zoneEditingId = "";
+      this.zoneEditValue = "";
     },
     toggleMoreMenu() {
       this.showMoreMenu = !this.showMoreMenu;
@@ -3266,6 +3308,77 @@ export default {
     },
     handleZoneNodeClick(data) {
       this.selectedEditZone = data.id;
+    },
+    handleZoneNodeExpand(data) {
+      if (data.type === "group" && data.raw) {
+        data.raw.expanded = true;
+      }
+    },
+    handleZoneNodeCollapse(data) {
+      if (data.type === "group" && data.raw) {
+        data.raw.expanded = false;
+      }
+    },
+    editZoneNode(data) {
+      if (!data || data.type !== "group" || !data.raw) return;
+      this.zoneEditingId = data.id;
+      this.zoneEditValue = data.raw.name || "";
+      this.$nextTick(() => {
+        const inputRef = this.$refs.zoneEditInput;
+        const input = Array.isArray(inputRef) ? inputRef[0] : inputRef;
+        if (input) {
+          input.focus();
+        }
+      });
+    },
+    isEditingZoneNode(data) {
+      return (
+        this.zoneEditMode &&
+        data &&
+        data.type === "group" &&
+        this.zoneEditingId === data.id
+      );
+    },
+    saveZoneNodeEdit(data) {
+      if (!this.isEditingZoneNode(data) || !data.raw) return;
+      const nextName = this.zoneEditValue.trim();
+      if (!nextName) {
+        this.$message.warning("名称不能为空");
+        this.$nextTick(() => {
+          const inputRef = this.$refs.zoneEditInput;
+          const input = Array.isArray(inputRef) ? inputRef[0] : inputRef;
+          if (input) input.focus();
+        });
+        return;
+      }
+      const oldName = data.raw.name;
+      data.raw.name = nextName;
+      this.zoneEditingId = "";
+      this.zoneEditValue = "";
+      if (nextName !== oldName) this.$message.success("编辑成功");
+    },
+    cancelZoneNodeEdit() {
+      this.zoneEditingId = "";
+      this.zoneEditValue = "";
+    },
+    deleteZoneNode(data) {
+      if (!data || !data.raw) return;
+      const groupId = data.id;
+      const hasChildren = this.editableZoneGroups.some(
+        (g) => g.parentId === groupId
+      );
+      if (hasChildren) {
+        this.$message.warning("请先删除子分区");
+        return;
+      }
+      const index = this.editableZoneGroups.findIndex((g) => g.id === groupId);
+      if (index > -1) {
+        this.editableZoneGroups.splice(index, 1);
+        if (this.selectedEditZone === groupId) {
+          this.selectedEditZone = "";
+        }
+        this.$message.success("删除成功");
+      }
     },
     toggleNodeMenu(id) {
       this.currentZoneGroupId = id;
@@ -3535,7 +3648,6 @@ export default {
 
 .zone-tree,
 .zone-edit-tree {
-  max-height: calc(100vh - 400px);
   overflow-y: auto;
   overflow-x: hidden;
   padding-right: 12px;
@@ -3628,13 +3740,10 @@ export default {
 }
 
 .zone-edit-tree .el-tree-node__content {
-  height: 40px;
+  height: 34px;
 }
 
-.custom-tree-node {
-  flex: 1;
-  display: flex;
-  align-items: center;
+.zone-edit-tree .zone-tree-node {
   padding-right: 8px;
 }
 
@@ -3642,6 +3751,7 @@ export default {
   display: flex;
   gap: 10px;
   margin-left: auto;
+  flex-shrink: 0;
 }
 
 .filter-section {
@@ -5547,9 +5657,12 @@ export default {
   font-weight: 700;
 }
 
-.zone-tree,
+.zone-tree {
+  max-height: calc(100vh - 340px);
+  padding-right: 0;
+}
 .zone-edit-tree {
-  max-height: calc(100vh - 390px);
+  max-height: calc(100vh - 280px);
   padding-right: 0;
 }
 
@@ -5601,7 +5714,7 @@ export default {
   display: block;
   width: 116px;
   height: 40px;
-  margin: 28px auto 0;
+  margin: 0 auto ;
   border-radius: 4px;
   background: #e8f3ff;
   color: #0f62fe;
@@ -5615,7 +5728,7 @@ export default {
 }
 
 .collapse-btn {
-  top: 168px;
+  top: 130px;
   width: 26px;
   height: 42px;
   border-radius: 0 18px 18px 0;
