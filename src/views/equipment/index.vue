@@ -103,6 +103,7 @@
                     class="editable-zone-actions"
                   >
                     <button
+                      v-if="data.type === 'group'"
                       type="button"
                       class="icon-btn"
                       @click.stop="toggleNodeMenu(data.id)"
@@ -117,6 +118,7 @@
                       ✎
                     </button>
                     <button
+                      v-if="data.type === 'group'"
                       type="button"
                       class="icon-btn"
                       @click.stop="deleteZoneNode(data)"
@@ -3319,10 +3321,12 @@ export default {
         data.raw.expanded = false;
       }
     },
+    // 编辑分区节点开始
     editZoneNode(data) {
-      if (!data || data.type !== "group" || !data.raw) return;
+      if (!data || !["group", "item"].includes(data.type) || !data.raw) return;
       this.zoneEditingId = data.id;
-      this.zoneEditValue = data.raw.name || "";
+      this.zoneEditValue =
+        data.type === "group" ? data.raw.name || "" : data.raw.label || "";
       this.$nextTick(() => {
         const inputRef = this.$refs.zoneEditInput;
         const input = Array.isArray(inputRef) ? inputRef[0] : inputRef;
@@ -3335,7 +3339,7 @@ export default {
       return (
         this.zoneEditMode &&
         data &&
-        data.type === "group" &&
+        ["group", "item"].includes(data.type) &&
         this.zoneEditingId === data.id
       );
     },
@@ -3351,8 +3355,12 @@ export default {
         });
         return;
       }
-      const oldName = data.raw.name;
-      data.raw.name = nextName;
+      const oldName = data.type === "group" ? data.raw.name : data.raw.label;
+      if (data.type === "group") {
+        data.raw.name = nextName;
+      } else {
+        data.raw.label = nextName;
+      }
       this.zoneEditingId = "";
       this.zoneEditValue = "";
       if (nextName !== oldName) this.$message.success("编辑成功");
@@ -3363,23 +3371,42 @@ export default {
     },
     deleteZoneNode(data) {
       if (!data || !data.raw) return;
-      const groupId = data.id;
-      const hasChildren = this.editableZoneGroups.some(
-        (g) => g.parentId === groupId
-      );
-      if (hasChildren) {
-        this.$message.warning("请先删除子分区");
-        return;
-      }
-      const index = this.editableZoneGroups.findIndex((g) => g.id === groupId);
-      if (index > -1) {
-        this.editableZoneGroups.splice(index, 1);
-        if (this.selectedEditZone === groupId) {
-          this.selectedEditZone = "";
+      if (data.type === "group") {
+        const groupId = data.id;
+        const hasChildren = this.editableZoneGroups.some(
+          (g) => g.parentId === groupId
+        );
+        if (hasChildren) {
+          this.$message.warning("请先删除子分区");
+          return;
         }
-        this.$message.success("删除成功");
+        const index = this.editableZoneGroups.findIndex(
+          (g) => g.id === groupId
+        );
+        if (index > -1) {
+          this.editableZoneGroups.splice(index, 1);
+          if (this.selectedEditZone === groupId) {
+            this.selectedEditZone = "";
+          }
+          this.$message.success("删除成功");
+        }
+      } else if (data.type === "item") {
+        const group = this.editableZoneGroups.find(
+          (g) => g.id === data.parentId
+        );
+        if (group && group.items) {
+          const index = group.items.findIndex((item) => item.id === data.id);
+          if (index > -1) {
+            group.items.splice(index, 1);
+            if (this.selectedEditZone === data.id) {
+              this.selectedEditZone = "";
+            }
+            this.$message.success("删除成功");
+          }
+        }
       }
     },
+    //编辑分区节点结束
     toggleNodeMenu(id) {
       this.currentZoneGroupId = id;
       this.selectedZoneType = "";
@@ -5714,7 +5741,7 @@ export default {
   display: block;
   width: 116px;
   height: 40px;
-  margin: 0 auto ;
+  margin: 0 auto;
   border-radius: 4px;
   background: #e8f3ff;
   color: #0f62fe;
