@@ -102,14 +102,38 @@
                     v-if="!isEditingZoneNode(data)"
                     class="editable-zone-actions"
                   >
-                    <button
+                    <el-popover
                       v-if="data.type === 'group'"
-                      type="button"
-                      class="icon-btn"
-                      @click.stop="toggleNodeMenu(data.id)"
+                      :ref="'popover-' + data.id"
+                      placement="bottom"
+                      title=""
+                      width="200"
+                      trigger="manual"
                     >
-                      +
-                    </button>
+                      <div class="create-zone-options">
+                        <div
+                          class="zone-option"
+                          :class="{ selected: selectedZoneType === 'peer' }"
+                          @click="selectZoneType('peer')"
+                        >
+                          <span class="option-label">同级分区</span>
+                        </div>
+                        <div
+                          class="zone-option"
+                          :class="{ selected: selectedZoneType === 'child' }"
+                          @click="selectZoneType('child')"
+                        >
+                          <span class="option-label">子级分区</span>
+                        </div>
+                      </div>
+                      <button
+                        slot="reference"
+                        @click.stop="toggleNodeMenu(data.id)"
+                      >
+                        +
+                      </button>
+                    </el-popover>
+
                     <button
                       type="button"
                       class="icon-btn"
@@ -1859,50 +1883,6 @@
           </button>
         </template>
       </el-dialog>
-
-      <el-dialog
-        :visible="showCreateZoneDialog"
-        :title="'新建分区'"
-        :width="'400px'"
-        @close="closeCreateZoneDialog"
-        custom-class="create-zone-dialog"
-      >
-        <div class="create-zone-options">
-          <div
-            class="zone-option"
-            :class="{ selected: selectedZoneType === 'peer' }"
-            @click="selectZoneType('peer')"
-          >
-            <span class="option-icon">◇</span>
-            <span class="option-label">同级分区</span>
-          </div>
-          <div
-            class="zone-option"
-            :class="{ selected: selectedZoneType === 'child' }"
-            @click="selectZoneType('child')"
-          >
-            <span class="option-icon">◆</span>
-            <span class="option-label">子级分区</span>
-          </div>
-        </div>
-
-        <template #footer>
-          <button
-            type="button"
-            class="batch-btn cancel"
-            @click="closeCreateZoneDialog"
-          >
-            取消
-          </button>
-          <button
-            type="button"
-            class="batch-btn confirm"
-            @click="confirmCreateZone"
-          >
-            确定
-          </button>
-        </template>
-      </el-dialog>
     </template>
 
     <quick-control-panel v-else-if="activeTopTab === 'control'" />
@@ -1923,6 +1903,7 @@ export default {
   },
   data() {
     return {
+      visible: false,
       activeTopTab: "management",
       activeMachineTab: "idu",
       viewMode: "card",
@@ -2443,6 +2424,7 @@ export default {
           parent: group,
         })),
       }));
+      console.log("🚀 ~ arr:", arr)
       return arr;
     },
     sortedEditableZoneGroups() {
@@ -3408,21 +3390,79 @@ export default {
     },
     //编辑分区节点结束
     toggleNodeMenu(id) {
+      // 关闭之前打开的popover
+      if (this.currentZoneGroupId && this.currentZoneGroupId !== id) {
+        const prevPopover = this.$refs["popover-" + this.currentZoneGroupId];
+        if (prevPopover) {
+          // 处理数组或单个元素的情况
+          const popoverRef = Array.isArray(prevPopover)
+            ? prevPopover[0]
+            : prevPopover;
+          if (popoverRef && popoverRef.doClose) {
+            popoverRef.doClose();
+          }
+        }
+      }
+      // 如果点击的是同一个节点，则关闭
+      if (this.currentZoneGroupId === id) {
+        const currentPopover = this.$refs["popover-" + id];
+        if (currentPopover) {
+          const popoverRef = Array.isArray(currentPopover)
+            ? currentPopover[0]
+            : currentPopover;
+          if (popoverRef && popoverRef.doClose) {
+            popoverRef.doClose();
+          }
+        }
+        this.currentZoneGroupId = "";
+        this.selectedZoneType = "";
+        return;
+      }
+      // 打开当前节点的popover
       this.currentZoneGroupId = id;
       this.selectedZoneType = "";
-      this.showCreateZoneDialog = true;
+      this.$nextTick(() => {
+        const popover = this.$refs["popover-" + id];
+        if (popover) {
+          const popoverRef = Array.isArray(popover) ? popover[0] : popover;
+          if (popoverRef && popoverRef.doShow) {
+            popoverRef.doShow();
+          }
+        }
+      });
+      // 添加点击外部关闭popover的事件监听
+      this.$nextTick(() => {
+        setTimeout(() => {
+          document.addEventListener("click", this.handleClickOutside);
+        }, 0);
+      });
+    },
+    handleClickOutside(e) {
+      // 检查点击是否在popover内部
+      const popover = this.$refs["popover-" + this.currentZoneGroupId];
+      if (popover) {
+        const popoverRef = Array.isArray(popover) ? popover[0] : popover;
+        if (popoverRef && popoverRef.$el) {
+          const popoverEl = popoverRef.$el;
+          const referenceEl = popoverRef.$refs.reference;
+          // 如果点击不在popover内部且不在触发按钮上，则关闭popover
+          if (
+            !popoverEl.contains(e.target) &&
+            !(referenceEl && referenceEl.contains(e.target))
+          ) {
+            if (popoverRef.doClose) {
+              popoverRef.doClose();
+            }
+            this.currentZoneGroupId = "";
+            this.selectedZoneType = "";
+            document.removeEventListener("click", this.handleClickOutside);
+          }
+        }
+      }
     },
     createTopLevelZone() {
-      const nextIndex = this.editableZoneGroups.length + 1;
-      const newZone = {
-        id: `zone-${Date.now()}`,
-        name: nextIndex === 1 ? "新节点8h1n" : `新建一级分区${nextIndex}`,
-        count: 0,
-        parentId: null,
-        level: 0,
-      };
-      this.editableZoneGroups.push(newZone);
-      this.selectedEditZone = newZone.id;
+   this.createPeerZone(this.currentZoneGroupId);
+
     },
     closeCreateZoneDialog() {
       this.showCreateZoneDialog = false;
@@ -3431,45 +3471,55 @@ export default {
     },
     selectZoneType(type) {
       this.selectedZoneType = type;
+      // 关闭当前popover
+      const popover = this.$refs["popover-" + this.currentZoneGroupId];
+      if (popover) {
+        const popoverRef = Array.isArray(popover) ? popover[0] : popover;
+        if (popoverRef && popoverRef.doClose) {
+          popoverRef.doClose();
+        }
+      }
+      this.confirmCreateZone();
     },
     confirmCreateZone() {
-      if (!this.selectedZoneType) {
-        this.$message.warning("请选择分区类型");
-        return;
-      }
       if (this.selectedZoneType === "peer") {
         this.createPeerZone(this.currentZoneGroupId);
+        this.$message.success("同级分区创建成功");
       } else if (this.selectedZoneType === "child") {
         this.createChildZone(this.currentZoneGroupId);
+        this.$message.success("子级分区创建成功");
       }
       this.closeCreateZoneDialog();
-      this.$message.success("分区创建成功");
+      this.visible = false;
+    },
+    generateRandomNodeName() {
+      // 生成3个随机小写字母 + 1个随机数字
+      const letters = "abcdefghijklmnopqrstuvwxyz";
+      const randomLetters =
+        letters.charAt(Math.floor(Math.random() * 26)) +
+        letters.charAt(Math.floor(Math.random() * 26)) +
+        letters.charAt(Math.floor(Math.random() * 26));
+      const randomDigit = Math.floor(Math.random() * 10);
+      return `新节点${randomLetters}${randomDigit}`;
     },
     createPeerZone(groupId) {
-      const current = this.editableZoneGroups.find(
-        (item) => item.id === groupId
-      );
-      if (!current) return;
-      this.editableZoneGroups.push({
+      // 同级添加：在树列表集合上添加新的顶级分区（与"未分区"同级）
+      const newZone = {
         id: `zone-${Date.now()}`,
-        name: `${current.name}-同级`,
-        count: 0,
-        parentId: current.parentId,
-        level: current.level,
-      });
+        name: this.generateRandomNodeName(),
+        expanded: true,
+        items: [],
+      };
+      this.indoorZones.push(newZone);
       this.nodeMenuId = "";
     },
     createChildZone(groupId) {
-      const current = this.editableZoneGroups.find(
-        (item) => item.id === groupId
-      );
+      // 子级添加：在选中的分区下面添加子节点（添加到该分区的items中）
+      const current = this.indoorZones.find((item) => item.id === groupId);
       if (!current) return;
-      this.editableZoneGroups.push({
-        id: `zone-${Date.now()}`,
-        name: `${current.name}-子级`,
-        count: 0,
-        parentId: current.id,
-        level: current.level + 1,
+      current.items.push({
+        id: `zone-item-${Date.now()}`,
+        label: this.generateRandomNodeName(),
       });
       this.nodeMenuId = "";
     },
@@ -4517,6 +4567,7 @@ export default {
   min-width: 0;
   position: relative;
   box-sizing: border-box;
+
   .icon-check {
     position: absolute;
     bottom: -1px;
@@ -4527,6 +4578,7 @@ export default {
     border-radius: 0 0 3px;
     border-right-color: #1962ff;
     border-bottom-color: #1962ff;
+
     .icon-check-icon {
       position: absolute;
       top: -4px;
@@ -4619,6 +4671,7 @@ export default {
   background: #e8f3ff;
   border-radius: 4px;
 }
+
 .card-body::before {
   position: absolute;
   display: block;
@@ -5507,17 +5560,12 @@ export default {
 .create-zone-options {
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  padding: 20px 0;
 }
 
 .zone-option {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 16px;
-  border: 1px solid #e4e9f2;
-  border-radius: 8px;
+  padding: 5px 0;
   cursor: pointer;
   transition: all 0.2s ease;
 
@@ -5687,10 +5735,13 @@ export default {
 .zone-tree {
   max-height: calc(100vh - 340px);
   padding-right: 0;
+  margin-bottom: 20px;
 }
+
 .zone-edit-tree {
   max-height: calc(100vh - 280px);
   padding-right: 0;
+  margin-bottom: 20px;
 }
 
 .zone-group-title {
@@ -6148,8 +6199,15 @@ export default {
   background: #95c1ff;
   cursor: not-allowed;
 }
+
 .action-btn_ssss {
   background: #0f62fe;
   color: #fff;
+}
+button,
+input {
+  overflow: visible;
+  background: transparent;
+  border: none;
 }
 </style>
