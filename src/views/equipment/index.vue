@@ -817,7 +817,7 @@
 
             <div v-else-if="viewMode === 'card'" class="card-grid">
               <div
-                v-for="item in currentCards"
+                v-for="item in pagedCards"
                 :key="item.id"
                 class="device-card"
                 :class="{
@@ -2424,7 +2424,7 @@ export default {
           parent: group,
         })),
       }));
-      console.log("🚀 ~ arr:", arr)
+      console.log("🚀 ~ arr:", arr);
       return arr;
     },
     sortedEditableZoneGroups() {
@@ -2488,6 +2488,10 @@ export default {
     pagedTableRows() {
       const start = (this.currentPage - 1) * this.pageSize;
       return this.currentTableRows.slice(start, start + this.pageSize);
+    },
+    pagedCards() {
+      const start = (this.currentPage - 1) * this.pageSize;
+      return this.currentCards.slice(start, start + this.pageSize);
     },
     currentZoneCount() {
       return this.currentZoneGroups.reduce(
@@ -3461,8 +3465,7 @@ export default {
       }
     },
     createTopLevelZone() {
-   this.createPeerZone(this.currentZoneGroupId);
-
+      this.createPeerZone(this.currentZoneGroupId);
     },
     closeCreateZoneDialog() {
       this.showCreateZoneDialog = false;

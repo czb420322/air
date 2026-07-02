@@ -7,6 +7,8 @@ const getDefaultState = () => {
     token: getToken(),
     name: '',
     id: '',
+    createTime: '',
+    userStatus: null,
   }
 }
 
@@ -24,6 +26,12 @@ const mutations = {
   },
   SET_ID: (state, id) => {
     state.id = id
+  },
+  SET_CREATE_TIME: (state, createTime) => {
+    state.createTime = createTime
+  },
+  SET_USER_STATUS: (state, userStatus) => {
+    state.userStatus = userStatus
   }
 }
 
@@ -54,9 +62,11 @@ const actions = {
           return reject('Verification failed, please Login again.')
         }
 
-        const { username: name, admin_id: id } = data
+        const { username: name, admin_id: id, create_time: createTime,status } = data
 
         commit('SET_NAME', name)
+        commit('SET_CREATE_TIME', createTime)
+        commit('SET_USER_STATUS', status)
         commit('SET_ID', id)
         resolve(data)
       }).catch(error => {
